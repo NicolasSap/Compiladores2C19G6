@@ -13,49 +13,73 @@ int yylval;
 DIGITO			[0-9]
 LETRA			[a-zA-Z]
 CHAR_ESP        [" "|"!"|"""|"#"|"$"|"%"|"&"|"'"|"("|")"|"*"|"+"|"-"|","|"."|"/"|":"|";"|"<"|">"|"="|"?"|"@"|"["|"]"|"{"|"}"|"\"|"^"|"_"|"`"|"~"]
-OP_SUMA         "+"
-OP_RESTA        "-"
-OP_ASIG         ":="
-OP_MULT         "*"
-OP_DIV          "/"
-OP_EQ           "=="
-OP_NEQ          "!="
-OP_MIN          "<"
-OP_MAX          ">"
-OP_MINEQ        "<="
-OP_MAXEQ        ">="
-AND             "&&"
-OR              "||"
-NOT             "!"
-P_A             "("
-P_C             ")"
-C_A             "["
-C_C             "]"
-L_A             "{"
-L_C             "}"
-PYC             ";"
-COMA            ","
-PTO             "."
-BLANK           " "
-IF              "IF"
-ELSE            "ELSE"
-ENDIF           "ENDIF"
-REPEAT          "REPEAT"
-UNTIL           "UNTIL"
-VAR             "VAR"
-ENDVAR          "ENDVAR"
-INT             "INTEGER"
-FLOAT           "FLOAT"
-STING           "STRING"
-PRINT           "PRINT"
-READ            "READ"
-CONST           "CONST"
+OP_SUMA         ["+"]
+OP_RESTA        ["-"]
+OP_ASIG         [":="]
+OP_MULT         ["*"]
+OP_DIV          ["/"]
+OP_EQ           ["=="]
+OP_NEQ          ["!="]
+OP_MIN          ["<"]
+OP_MAX          [">"]
+OP_MINEQ        ["<="]
+OP_MAXEQ        [">="]
+AND             ["&&"]
+OR              ["||"]
+NOT             ["!"]
+P_A             ["("]
+P_C             [")"]
+C_A             ["["]
+C_C             ["]"]
+L_A             ["{"]
+L_C             ["}"]
+PYC             [";"]
+COMA            [","]
+PTO             ["."]
+BLANK           [" "]
 ID			    {LETRA}({LETRA}|{DIGITO}|_)*
-CTE_STING       \"({LETRA}|{NUMERO}|{CHAR_ESP})*\"
+CTE_STING       "({LETRA}|{DIGITO}|{CHAR_ESP})*"
 CTE_ENT         {DIGITO}+
 CTE_REAL        {DIGITO}*"."{DIGITO}+|{DIGITO}+"."{DIGITO}*|{DIGITO}+"."{DIGITO}+
-COMMENT         "--/"({LETRA}|{NUMERO}|{CHAR_ESP})*"/--"|"--/"({LETRA}|{NUMERO}|{CHAR_ESP})*"--/"({LETRA}|{NUMERO}|{CHAR_ESP})*"/--"({LETRA}|{NUMERO}|{CHAR_ESP})*"/--"
+COMMENT         "--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"|"--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"
 
 %%
-
+":="			{ return OP_ASIG;}
+"+"				{ return OP_SUMA;}
+"-"				{ return OP_RESTA;}
+"*"				{ return OP_MULT;}
+"/"				{ return OP_DIV;}
+"("				{ return P_A;}
+")"				{ return P_C;}
+"["				{ return C_A;}
+"]"				{ return C_C;}
+"{"				{ return L_A} 
+"}"				{ return L_C} 
+">"             { return OP_MAX;}
+">="            { return OP_MAXEQ;}
+"<"             { return OP_MIN;}
+"<="            { return OP_MINEQ;}
+"!="            { return OP_NEQ;}
+"=="            { return OP_EQ;}
+";"             { return PYC;}
+"."             { return PTO;}
+","				{ return COMA;}
+"IF"			{ return IF;}
+"ELSE"			{ return ELSE;}
+"ENDIF"			{ return ENDIF;}
+"REPEAT"		{ return REPEAT;}
+"UNTIL"			{ return UNTIL;}
+"VAR"			{ return VAR;}
+"ENDVAR"		{ return ENDVAR;}
+"INTEGER"		{ return INT;}
+"FLOAT"			{ return FLOAT;}
+"STRING"		{ return STRING;}
+"PRINT"			{ return PRINT;}
+"READ"			{ return READ;}
+"CONST"			{ return CONST;}
+{BLANK}			{ return BLANK;}
+{ID}			{ return ID;}
+{CTE_STING}		{ return CTE_STING;}
+{CTE_ENT}		{ return CTE_ENT;}
+{CTE_REAL}		{ return CTE_REAL;}
 %%
