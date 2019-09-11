@@ -86,8 +86,11 @@ asignacion_m : C_A lista_var C_C OP_ASIG C_A lista_exp C_C  {printf("\nRegla X :
 lista_var : lista_var COMA ID {printf("\nRegla X : Lista, ID\n");}
     | ID {printf("\nRegla X : Lista ID\n");}
 ;
+lista_exp : lista_exp COMA ID {printf("\nRegla X : Lista_EXP, ID\n");}
+    | ID {printf("\nRegla X : ListaEXP ID\n");}
+;
 decision : IF P_A condicion P_C L_A sentencia L_C ELSE L_A sentencia L_C {printf("\nRegla X : Decision con Else\n");}
-    | IF P_A comparacion P_C L_A sentencia L_C {printf("\nRegla X : Decision\n");}
+    | IF P_A condicion P_C L_A sentencia L_C {printf("\nRegla X : Decision\n");}
 ;
 condicion : ID OP_MAX CTE_ENT {printf("\nRegla X : ID > ENTERO\n");}
     | ID OP_MAX ID {printf("\nRegla X : ID > ID\n");}

@@ -12,12 +12,15 @@ int yylval;
 
 DIGITO			[0-9]
 LETRA			[a-zA-Z]
-CHAR_ESP        [" "|"!"|"""|"#"|"$"|"%"|"&"|"'"|"("|")"|"*"|"+"|"-"|","|"."|"/"|";"|"<"|">"|"?"|"@"|"["|"]"|"{"|"}"|"\"|"^"|"_"|"`"|"~"]
-ID			    {LETRA}({LETRA}|{DIGITO}|_)*
-CTE_STING       \"({LETRA}|{DIGITO}|{CHAR_ESP})*\"
+ID			    {LETRA}({LETRA}|{DIGITO})*
 CTE_ENT         {DIGITO}+
 CTE_REAL        {DIGITO}*"."{DIGITO}+|{DIGITO}+"."{DIGITO}*|{DIGITO}+"."{DIGITO}+
-COMMENT         "--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"|"--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"
+CTE_STRING      \".*\"
+COMMENT         "--/"{CTE_STRING}*"/--"|"--/"{CTE_STRING}*"--/"{CTE_STRING}*"/--"{CTE_STRING}*"/--"
+BLANK           [" "]
+INT             "INTEGER"
+FLOAT           "FLOAT"
+STRING          "STRING"
 
 %%
 ":="			{ return OP_ASIG;}
@@ -29,8 +32,8 @@ COMMENT         "--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"|"--/"({LETRA}|{DIGITO}|
 ")"				{ return P_C;}
 "["				{ return C_A;}
 "]"				{ return C_C;}
-"{"				{ return L_A} 
-"}"				{ return L_C} 
+"{"				{ return L_A;} 
+"}"				{ return L_C;} 
 ">"             { return OP_MAX;}
 ">="            { return OP_MAXEQ;}
 "<"             { return OP_MIN;}
@@ -52,17 +55,29 @@ COMMENT         "--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"|"--/"({LETRA}|{DIGITO}|
 "UNTIL"			{ return UNTIL;}
 "VAR"			{ return VAR;}
 "ENDVAR"		{ return ENDVAR;}
-"INTEGER"		{ return INT;}
-"FLOAT"			{ return FLOAT;}
-"STRING"		{ return STRING;}
+{INT}		    { return INT;}
+{FLOAT} 		{ return FLOAT;}
+{STRING}		{ return STRING;}
 "PRINT"			{ return PRINT;}
 "READ"			{ return READ;}
 "CONST"			{ return CONST;}
+{ID}			{ return ID;}
+{COMMENT}
+{CTE_STRING}	{ return CTE_STRING;}
+{CTE_ENT}		{ return CTE_ENT;}
+{CTE_REAL}		{ return CTE_REAL;}
 "BLANK"
 "\n"
 "\t"
-{ID}			{ return ID;}
-{CTE_STING}		{ return CTE_STING;}
-{CTE_ENT}		{ return CTE_ENT;}
-{CTE_REAL}		{ return CTE_REAL;}
+"\r\n"
+.               {printf("Token no reconocido %s\n", yytext); exit(1);}
 %%
+
+int main(int argc,char *argv[]){
+    if ((yyin = fopen(argv[1], "rt")) == NULL) {
+        printf("\nNo se puede abrir el archivo: %s\n", argv[1]);
+    } else {
+        yylex();
+    }
+    fclose(yyin);
+}
