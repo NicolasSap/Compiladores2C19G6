@@ -13,30 +13,6 @@ int yylval;
 DIGITO			[0-9]
 LETRA			[a-zA-Z]
 CHAR_ESP        [" "|"!"|"""|"#"|"$"|"%"|"&"|"'"|"("|")"|"*"|"+"|"-"|","|"."|"/"|":"|";"|"<"|">"|"="|"?"|"@"|"["|"]"|"{"|"}"|"\"|"^"|"_"|"`"|"~"]
-OP_SUMA         ["+"]
-OP_RESTA        ["-"]
-OP_ASIG         [":="]
-OP_MULT         ["*"]
-OP_DIV          ["/"]
-OP_EQ           ["=="]
-OP_NEQ          ["!="]
-OP_MIN          ["<"]
-OP_MAX          [">"]
-OP_MINEQ        ["<="]
-OP_MAXEQ        [">="]
-AND             ["&&"]
-OR              ["||"]
-NOT             ["!"]
-P_A             ["("]
-P_C             [")"]
-C_A             ["["]
-C_C             ["]"]
-L_A             ["{"]
-L_C             ["}"]
-PYC             [";"]
-COMA            [","]
-PTO             ["."]
-BLANK           [" "]
 ID			    {LETRA}({LETRA}|{DIGITO}|_)*
 CTE_STING       "({LETRA}|{DIGITO}|{CHAR_ESP})*"
 CTE_ENT         {DIGITO}+
@@ -64,6 +40,9 @@ COMMENT         "--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"|"--/"({LETRA}|{DIGITO}|
 ";"             { return PYC;}
 "."             { return PTO;}
 ","				{ return COMA;}
+"&&"			{ return AND;}
+"||"			{ return OR;}
+"!"				{ return NOT;}
 "IF"			{ return IF;}
 "ELSE"			{ return ELSE;}
 "ENDIF"			{ return ENDIF;}
@@ -77,7 +56,7 @@ COMMENT         "--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"|"--/"({LETRA}|{DIGITO}|
 "PRINT"			{ return PRINT;}
 "READ"			{ return READ;}
 "CONST"			{ return CONST;}
-{BLANK}			{ return BLANK;}
+"BLANK"			{ return BLANK;}
 {ID}			{ return ID;}
 {CTE_STING}		{ return CTE_STING;}
 {CTE_ENT}		{ return CTE_ENT;}
