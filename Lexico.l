@@ -12,9 +12,9 @@ int yylval;
 
 DIGITO			[0-9]
 LETRA			[a-zA-Z]
-CHAR_ESP        [" "|"!"|"""|"#"|"$"|"%"|"&"|"'"|"("|")"|"*"|"+"|"-"|","|"."|"/"|":"|";"|"<"|">"|"="|"?"|"@"|"["|"]"|"{"|"}"|"\"|"^"|"_"|"`"|"~"]
+CHAR_ESP        [" "|"!"|"""|"#"|"$"|"%"|"&"|"'"|"("|")"|"*"|"+"|"-"|","|"."|"/"|";"|"<"|">"|"?"|"@"|"["|"]"|"{"|"}"|"\"|"^"|"_"|"`"|"~"]
 ID			    {LETRA}({LETRA}|{DIGITO}|_)*
-CTE_STING       "({LETRA}|{DIGITO}|{CHAR_ESP})*"
+CTE_STING       \"({LETRA}|{DIGITO}|{CHAR_ESP})*\"
 CTE_ENT         {DIGITO}+
 CTE_REAL        {DIGITO}*"."{DIGITO}+|{DIGITO}+"."{DIGITO}*|{DIGITO}+"."{DIGITO}+
 COMMENT         "--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"|"--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"
@@ -37,8 +37,10 @@ COMMENT         "--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"|"--/"({LETRA}|{DIGITO}|
 "<="            { return OP_MINEQ;}
 "!="            { return OP_NEQ;}
 "=="            { return OP_EQ;}
+"="             { return EQ;}
 ";"             { return PYC;}
 "."             { return PTO;}
+":"             { return DPTO;}
 ","				{ return COMA;}
 "&&"			{ return AND;}
 "||"			{ return OR;}
@@ -56,7 +58,9 @@ COMMENT         "--/"({LETRA}|{DIGITO}|{CHAR_ESP})*"/--"|"--/"({LETRA}|{DIGITO}|
 "PRINT"			{ return PRINT;}
 "READ"			{ return READ;}
 "CONST"			{ return CONST;}
-"BLANK"			{ return BLANK;}
+"BLANK"
+"\n"
+"\t"
 {ID}			{ return ID;}
 {CTE_STING}		{ return CTE_STING;}
 {CTE_ENT}		{ return CTE_ENT;}
