@@ -1,0 +1,2 @@
+CONST pepe = 30
+CONST mal = "asd"

@@ -78,6 +78,7 @@ FILE  *yyin;
 programa: program {printf("\nRegla 0 : Compilacion Ok\n");}
 ;
 program: sentencia {printf("\nRegla 1 : Sentencia\n");}
+    | program sentencia {printf("\nRegla 0000 : Program\n");}
 ;
 sentencia: asignacion_s {printf("\nRegla 2 : Asignacion Simple\n");}
     | asignacion_m {printf("\nRegla 3 : Asignacion Multiple\n");}
@@ -95,8 +96,13 @@ asignacion_m: C_A lista_var C_C OP_ASIG C_A lista_exp C_C  {printf("\nRegla 10 :
 lista_var: lista_var COMA ID {printf("\nRegla 11 : Lista, ID\n");}
     | ID {printf("\nRegla 12 : Lista ID\n");}
 ;
-lista_exp: lista_exp COMA ID {printf("\nRegla 13 : Lista_EXP, ID\n");}
-    | ID {printf("\nRegla 14 : ListaEXP ID\n");}
+lista_exp: lista_exp COMA var {printf("\nRegla 13 : Lista_EXP, ID\n");}
+    | var {printf("\nRegla X1 : Variable\n");}
+;
+var: ID {printf("\nRegla 14 : ListaEXP ID\n");}
+    | CTE_ENT {printf("\nRegla X2 : Entero\n");}
+    | CTE_REAL {printf("\nRegla X3 : Real\n");}
+    | CTE_STRING {printf("\nRegla X4 : String\n");}
 ;
 decision: IF P_A condicion P_C L_A sentencia L_C ELSE L_A sentencia L_C {printf("\nRegla 15 : Decision con Else\n");}
     | IF P_A condicion P_C L_A sentencia L_C {printf("\nRegla 16 : Decision\n");}
@@ -155,7 +161,7 @@ int main(int argc,char *argv[]){
 }
 
 int yyerror(void) {
-    printf("Syntax Error\n");
+    printf("\n[!] Syntax Error\n\n");
 	system ("Pause");
 	exit (1);
 }
