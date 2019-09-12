@@ -42,6 +42,9 @@ FILE  *yyin;
 %token  PRINT
 %token  READ
 %token  CONST
+%token  INT
+%token  FLOAT
+%token  STRING
 
 %right  MENOS_UNARIO
 %right  OP_ASIG
@@ -72,66 +75,72 @@ FILE  *yyin;
 // expr : PARENTA expr PARENTC { $$ = $2; }
 
 %% 
-programa : program {printf("\nRegla 0 : Compilación Ok\n");}
+programa: program {printf("\nRegla 0 : Compilacion Ok\n");}
 ;
-program : sentencia {printf("\nRegla 1 : Sentencia\n");}
+program: sentencia {printf("\nRegla 1 : Sentencia\n");}
 ;
-sentencia : asignacion_s {printf("\nRegla 2 : Asignación Simple\n");}
-    | asignacion_m {printf("\nRegla 3 : Asignación Multiple\n");}
+sentencia: asignacion_s {printf("\nRegla 2 : Asignacion Simple\n");}
+    | asignacion_m {printf("\nRegla 3 : Asignacion Multiple\n");}
+    | decision {printf("\nRegla 4 : Decision\n");}
+    | iteracion {printf("\nRegla 5 : Iteracion\n");}
+    | printear {printf("\nRegla 5 : Print\n");}
+    | obtain {printf("\nRegla 6 : READ\n");}
+    | declaracion {printf("\nRegla 7 : Declaracion\n");}
+    | cteNombre {printf("\nRegla 8 : Constante Nombre\n");}
 ;
-asignacion_s : ID OP_ASIG expresion {printf("\nRegla X : Asignación Simple ID :=\n");}
+asignacion_s: ID OP_ASIG expresion {printf("\nRegla 9 : Asignacion Simple ID :=\n");}
 ;
-asignacion_m : C_A lista_var C_C OP_ASIG C_A lista_exp C_C  {printf("\nRegla X : Asignación Multiple Lista\n");}
+asignacion_m: C_A lista_var C_C OP_ASIG C_A lista_exp C_C  {printf("\nRegla 10 : Asignacion Multiple Lista\n");}
 ;
-lista_var : lista_var COMA ID {printf("\nRegla X : Lista, ID\n");}
-    | ID {printf("\nRegla X : Lista ID\n");}
+lista_var: lista_var COMA ID {printf("\nRegla 11 : Lista, ID\n");}
+    | ID {printf("\nRegla 12 : Lista ID\n");}
 ;
-lista_exp : lista_exp COMA ID {printf("\nRegla X : Lista_EXP, ID\n");}
-    | ID {printf("\nRegla X : ListaEXP ID\n");}
+lista_exp: lista_exp COMA ID {printf("\nRegla 13 : Lista_EXP, ID\n");}
+    | ID {printf("\nRegla 14 : ListaEXP ID\n");}
 ;
-decision : IF P_A condicion P_C L_A sentencia L_C ELSE L_A sentencia L_C {printf("\nRegla X : Decision con Else\n");}
-    | IF P_A condicion P_C L_A sentencia L_C {printf("\nRegla X : Decision\n");}
+decision: IF P_A condicion P_C L_A sentencia L_C ELSE L_A sentencia L_C {printf("\nRegla 15 : Decision con Else\n");}
+    | IF P_A condicion P_C L_A sentencia L_C {printf("\nRegla 16 : Decision\n");}
 ;
-condicion : ID OP_MAX CTE_ENT {printf("\nRegla X : ID > ENTERO\n");}
-    | ID OP_MAX ID {printf("\nRegla X : ID > ID\n");}
-    | ID OP_MIN CTE_ENT {printf("\nRegla X : ID < ENTERO\n");}
-    | ID OP_MIN ID {printf("\nRegla X : ID < ID\n");}
-    | ID OP_MAXEQ CTE_ENT {printf("\nRegla X : ID >= ENTERO\n");}
-    | ID OP_MAXEQ ID {printf("\nRegla X : ID >= ID\n");}
-    | ID OP_MINEQ CTE_ENT {printf("\nRegla X : ID <= ENTERO\n");}
-    | ID OP_MINEQ ID {printf("\nRegla X : ID <= ID\n");}
-    | ID OP_EQ CTE_ENT {printf("\nRegla X : ID == ENTERO\n");}
-    | ID OP_EQ ID {printf("\nRegla X : ID == ID\n");}
-    | ID OP_NEQ CTE_ENT {printf("\nRegla X : ID != ENTERO\n");}
-    | ID OP_NEQ ID {printf("\nRegla X : ID != ID\n");}
-    | condicion AND condicion {printf("\nRegla X : AND\n");}
-    | condicion OR condicion {printf("\nRegla X : OR\n");}
-    | NOT ID {printf("\nRegla X : NOT\n");}
+condicion: ID OP_MAX CTE_ENT {printf("\nRegla 17 : ID > ENTERO\n");}
+    | ID OP_MAX ID {printf("\nRegla 18 : ID > ID\n");}
+    | ID OP_MIN CTE_ENT {printf("\nRegla 19 : ID < ENTERO\n");}
+    | ID OP_MIN ID {printf("\nRegla 20 : ID < ID\n");}
+    | ID OP_MAXEQ CTE_ENT {printf("\nRegla 21 : ID >= ENTERO\n");}
+    | ID OP_MAXEQ ID {printf("\nRegla 22 : ID >= ID\n");}
+    | ID OP_MINEQ CTE_ENT {printf("\nRegla 23 : ID <= ENTERO\n");}
+    | ID OP_MINEQ ID {printf("\nRegla 24 : ID <= ID\n");}
+    | ID OP_EQ CTE_ENT {printf("\nRegla 25 : ID == ENTERO\n");}
+    | ID OP_EQ ID {printf("\nRegla 26 : ID == ID\n");}
+    | ID OP_NEQ CTE_ENT {printf("\nRegla 27 : ID != ENTERO\n");}
+    | ID OP_NEQ ID {printf("\nRegla 28 : ID != ID\n");}
+    | condicion AND condicion {printf("\nRegla 29 : AND\n");}
+    | condicion OR condicion {printf("\nRegla 30 : OR\n");}
+    | NOT ID {printf("\nRegla 31 : NOT\n");}
 ;
-iteracion : REPEAT sentencia UNTIL condicion {printf("\nRegla X : Repeat\n");}
+iteracion: REPEAT sentencia UNTIL condicion {printf("\nRegla 32 : Repeat\n");}
 ;
-printear : PRINT CTE_STRING {printf("\nRegla X : Print String\n");}
-    | PRINT ID {printf("\nRegla X : Print ID\n");}
+printear: PRINT CTE_STRING {printf("\nRegla 33 : Print String\n");}
+    | PRINT ID {printf("\nRegla 34 : Print ID\n");}
 ;
-obtain : READ ID {printf("\nRegla X : Read Variable\n");}
+obtain: READ ID {printf("\nRegla 35 : Read Variable\n");}
 ;
-declaracion : VAR DPTO ENDVAR {printf("\nRegla X : Declaracion Variables\n");}
+declaracion: VAR DPTO ENDVAR {printf("\nRegla 36 : Declaracion Variables\n");}
 ;
-cteNombre : CONST ID EQ CTE_ENT {printf("\nRegla X : Cte Con Nombre Entero\n");}
-    | CONST ID EQ CTE_STRING {printf("\nRegla X : Cte Con Nombre String\n");}
+cteNombre: CONST ID EQ CTE_ENT {printf("\nRegla 37 : Cte Con Nombre Entero\n");}
+    | CONST ID EQ CTE_STRING {printf("\nRegla 38 : Cte Con Nombre String\n");}
 ;
-expresion : expresion OP_SUMA termino {printf("\nRegla X : E + T\n");} 
-    | expresion OP_RESTA termino {printf("\nRegla X : E - T\n");} 
-    | termino {printf("\nRegla X : Termino\n");}
+expresion: expresion OP_SUMA termino {printf("\nRegla 39 : E + T\n");} 
+    | expresion OP_RESTA termino {printf("\nRegla 40 : E - T\n");} 
+    | termino {printf("\nRegla 41 : Termino\n");}
 ;
-termino : termino OP_MULT factor {printf("\nRegla X : T * F\n");}
-    | termino OP_DIV factor {printf("\nRegla X : T / F\n");}
-    | factor {printf("\nRegla X : Factor\n");}
+termino: termino OP_MULT factor {printf("\nRegla 42 : T * F\n");}
+    | termino OP_DIV factor {printf("\nRegla 43 : T / F\n");}
+    | factor {printf("\nRegla 44 : Factor\n");}
 ;
-factor : ID {printf("\nRegla X : ID\n");}
-    | CTE_ENT {printf("\nRegla X : Entero\n");}
-    | CTE_REAL {printf("\nRegla X : Real\n");}
-    | P_A expresion P_C {printf("\nRegla X : (E)\n");}
+factor: ID {printf("\nRegla 45 : ID\n");}
+    | CTE_ENT {printf("\nRegla 46 : Entero\n");}
+    | CTE_REAL {printf("\nRegla 47 : Real\n");}
+    | P_A expresion P_C {printf("\nRegla 48 : (E)\n");}
 ;
 %%
 

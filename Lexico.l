@@ -18,9 +18,6 @@ CTE_REAL        {DIGITO}*"."{DIGITO}+|{DIGITO}+"."{DIGITO}*|{DIGITO}+"."{DIGITO}
 CTE_STRING      \".*\"
 COMMENT         "--/"{CTE_STRING}*"/--"|"--/"{CTE_STRING}*"--/"{CTE_STRING}*"/--"{CTE_STRING}*"/--"
 BLANK           [" "]
-INT             "INTEGER"
-FLOAT           "FLOAT"
-STRING          "STRING"
 
 %%
 ":="			{ return OP_ASIG;}
@@ -55,9 +52,9 @@ STRING          "STRING"
 "UNTIL"			{ return UNTIL;}
 "VAR"			{ return VAR;}
 "ENDVAR"		{ return ENDVAR;}
-{INT}		    { return INT;}
-{FLOAT} 		{ return FLOAT;}
-{STRING}		{ return STRING;}
+"INT"		    { return INT;}
+"FLOAT" 		{ return FLOAT;}
+"STRING"		{ return STRING;}
 "PRINT"			{ return PRINT;}
 "READ"			{ return READ;}
 "CONST"			{ return CONST;}
@@ -70,14 +67,5 @@ STRING          "STRING"
 "\n"
 "\t"
 "\r\n"
-.               {printf("Token no reconocido %s\n", yytext); exit(1);}
-%%
 
-int main(int argc,char *argv[]){
-    if ((yyin = fopen(argv[1], "rt")) == NULL) {
-        printf("\nNo se puede abrir el archivo: %s\n", argv[1]);
-    } else {
-        yylex();
-    }
-    fclose(yyin);
-}
+%%
