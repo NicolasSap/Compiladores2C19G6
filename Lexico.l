@@ -16,7 +16,7 @@ ID			    {LETRA}({LETRA}|{DIGITO})*
 CTE_ENT         {DIGITO}+
 CTE_REAL        {DIGITO}*"."{DIGITO}+|{DIGITO}+"."{DIGITO}*|{DIGITO}+"."{DIGITO}+
 CTE_STRING      \".*\"
-COMMENT         "--/"{CTE_STRING}*"/--"|"--/"{CTE_STRING}*"--/"{CTE_STRING}*"/--"{CTE_STRING}*"/--"
+COMMENT         "--\/".*"\/--"
 BLANK           [" "]
 
 %%
@@ -59,7 +59,7 @@ BLANK           [" "]
 "READ"			{ return READ;}
 "CONST"			{ return CONST;}
 {ID}			{ return ID;}
-{COMMENT}
+{COMMENT}             
 {CTE_STRING}	{ return CTE_STRING;}
 {CTE_ENT}		{ return CTE_ENT;}
 {CTE_REAL}		{ return CTE_REAL;}

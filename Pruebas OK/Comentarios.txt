@@ -1,0 +1,4 @@
+--/ asdasdad--/ asda  --/ asdasd /-- sd := 2 /-- /--
+a := 2
+
+b := "asd"
