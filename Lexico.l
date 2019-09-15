@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
+#include <float.h>
 #include "y.tab.h"
+
 FILE  *yyin;
 int yylval;
 
@@ -76,8 +78,8 @@ BLANK           [" "]
 %%
 
 void checkearLimitesConstanteString() {
-  if (yyleng > 30) {
-    printf("Valor máximo excedido en linea %d\n", yylineno);
+  if (yyleng > 32) {
+    printf("Valor maximo excedido en linea %d\n", yylineno);
     exit(1);
   }
 }
@@ -85,7 +87,7 @@ void checkearLimitesConstanteString() {
 void checkearLimitesConstanteFloat() {
   if (strcmp(yytext,"0") != 0){
     if (atof(yytext) > FLT_MAX || yyleng > 39) {
-        printf("Valor máximo excedido en linea %d\n", yylineno);
+        printf("Valor maximo excedido en linea %d\n", yylineno);
         exit(1);
     }
   }
@@ -93,7 +95,7 @@ void checkearLimitesConstanteFloat() {
 
 void checkearLimitesConstanteInteger() {
   if (atoi(yytext) > 65535) {
-    printf("Valor máximo excedido en linea %d\n", yylineno);
+    printf("Valor maximo excedido en linea %d\n", yylineno);
     exit(1);
   }
 }
