@@ -5,6 +5,11 @@
 #include "y.tab.h"
 FILE  *yyin;
 int yylval;
+
+void checkearLimitesConstanteString();
+void checkearLimitesConstanteFloat();
+void checkearLimitesConstanteInteger();
+
 %}
 
 %option noyywrap  
@@ -60,12 +65,35 @@ BLANK           [" "]
 "CONST"			{ return CONST;}
 {ID}			{ return ID;}
 {COMMENT}             
-{CTE_STRING}	{ return CTE_STRING;}
-{CTE_ENT}		{ return CTE_ENT;}
-{CTE_REAL}		{ return CTE_REAL;}
+{CTE_STRING}	{ checkearLimitesConstanteString(); return CTE_STRING;}
+{CTE_ENT}		{ checkearLimitesConstanteInteger(); return CTE_ENT;}
+{CTE_REAL}		{ checkearLimitesConstanteFloat(); return CTE_REAL;}
 "BLANK"
 "\n"
 "\t"
 "\r\n"
 
 %%
+
+void checkearLimitesConstanteString() {
+  if (yyleng > 30) {
+    printf("Valor máximo excedido en linea %d\n", yylineno);
+    exit(1);
+  }
+}
+
+void checkearLimitesConstanteFloat() {
+  if (strcmp(yytext,"0") != 0){
+    if (atof(yytext) > FLT_MAX || yyleng > 39) {
+        printf("Valor máximo excedido en linea %d\n", yylineno);
+        exit(1);
+    }
+  }
+}
+
+void checkearLimitesConstanteInteger() {
+  if (atoi(yytext) > 65535) {
+    printf("Valor máximo excedido en linea %d\n", yylineno);
+    exit(1);
+  }
+}
