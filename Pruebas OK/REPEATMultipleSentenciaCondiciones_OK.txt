@@ -1,0 +1,4 @@
+REPEAT 
+    a := 2 
+    b := 1
+UNTIL ! a == 2 && b == 1 

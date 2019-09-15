@@ -117,6 +117,12 @@ decision:
         IF P_A condicion P_C L_A sentencia L_C ELSE L_A sentencia L_C   {printf("\nRegla 20 : Decision con Else\n");}
     |   IF P_A condicion P_C L_A sentencia L_C                          {printf("\nRegla 21 : Decision\n");}
 ;
+condicion1:
+        condicion               {printf("\nRegla 22 : ID > ENTERO\n");}
+    |   condicion AND condicion {printf("\nRegla 35 : AND\n");}
+    |   condicion OR condicion  {printf("\nRegla 36 : OR\n");}
+
+;
 condicion: 
         ID OP_MAX CTE_ENT       {printf("\nRegla 22 : ID > ENTERO\n");}
     |   ID OP_MAX ID            {printf("\nRegla 23 : ID > ID\n");}
@@ -130,13 +136,10 @@ condicion:
     |   ID OP_EQ ID             {printf("\nRegla 31 : ID == ID\n");}
     |   ID OP_NEQ CTE_ENT       {printf("\nRegla 32 : ID != ENTERO\n");}
     |   ID OP_NEQ ID            {printf("\nRegla 33 : ID != ID\n");}
-    |   NOT ID                  {printf("\nRegla 34 : NOT\n");}
-    |   condicion AND condicion {printf("\nRegla 35 : AND\n");}
-    |   condicion OR condicion  {printf("\nRegla 36 : OR\n");}
-    
 ;
 iteracion: 
-        REPEAT sentencia UNTIL condicion {printf("\nRegla 37 : Repeat\n");}
+        REPEAT program UNTIL condicion1     {printf("\nRegla 37 : Repeat\n");}
+    |   REPEAT program UNTIL NOT condicion1 {printf("\nRegla 34 : NOT\n");}
 ;
 printear: 
         PRINT CTE_STRING    {printf("\nRegla 38 : Print String\n");}
