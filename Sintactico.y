@@ -149,20 +149,26 @@ obtain:
         READ ID {printf("\nRegla 40 : Read Variable\n");}
 ;
 declaracion: 
-        VAR DPTO ENDVAR {printf("\nRegla 41 : Declaracion Variables\n");}
+        VAR C_A lista_tipos C_C DPTO OP_ASIG C_A lista_var C_C ENDVAR {printf("\nRegla 41 : Declaracion Variables\n");}
+;
+lista_tipos:
+        lista_tipos COMA INT   {printf("\nRegla 42 : Lista_Tipo, INT\n");}
+    |   lista_tipos COMA FLOAT   {printf("\nRegla 43 : FLOAT\n");}
+    |   INT {printf("\nRegla 44 : Tipo Integer\n");}
+    |   FLOAT   {printf("\nRegla 45 : Tipo Float\n");}
 ;
 cteNombre: 
-        CONST ID OP_ASIG CTE_ENT     {printf("\nRegla 42 : Cte Con Nombre Entero\n");}
-    |   CONST ID OP_ASIG  CTE_STRING  {printf("\nRegla 43 : Cte Con Nombre String\n");}
+        CONST ID OP_ASIG CTE_ENT     {printf("\nRegla 46 : Cte Con Nombre Entero\n");}
+    |   CONST ID OP_ASIG  CTE_STRING  {printf("\nRegla 47 : Cte Con Nombre String\n");}
 ;
 expresion: 
-        expresion OP_SUMA termino   {printf("\nRegla 44 : E + T\n");} 
-    |   expresion OP_RESTA termino  {printf("\nRegla 45 : E - T\n");} 
+        expresion OP_SUMA termino   {printf("\nRegla 48 : E + T\n");} 
+    |   expresion OP_RESTA termino  {printf("\nRegla 49 : E - T\n");} 
     |   termino 
 ;
 termino: 
-        termino OP_MULT factor  {printf("\nRegla 46 : T * F\n");}
-    |   termino OP_DIV factor   {printf("\nRegla 47 : T / F\n");}
+        termino OP_MULT factor  {printf("\nRegla 50 : T * F\n");}
+    |   termino OP_DIV factor   {printf("\nRegla 51 : T / F\n");}
     |   factor 
 ;
 factor: 
