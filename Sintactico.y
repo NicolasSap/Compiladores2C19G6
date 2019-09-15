@@ -152,8 +152,8 @@ declaracion:
         VAR DPTO ENDVAR {printf("\nRegla 41 : Declaracion Variables\n");}
 ;
 cteNombre: 
-        CONST ID EQ CTE_ENT     {printf("\nRegla 42 : Cte Con Nombre Entero\n");}
-    |   CONST ID EQ CTE_STRING  {printf("\nRegla 43 : Cte Con Nombre String\n");}
+        CONST ID OP_ASIG CTE_ENT     {printf("\nRegla 42 : Cte Con Nombre Entero\n");}
+    |   CONST ID OP_ASIG  CTE_STRING  {printf("\nRegla 43 : Cte Con Nombre String\n");}
 ;
 expresion: 
         expresion OP_SUMA termino   {printf("\nRegla 44 : E + T\n");} 

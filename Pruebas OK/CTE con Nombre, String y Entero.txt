@@ -1,2 +1,2 @@
-CONST pepe = 30
-CONST mal = "asd"
+CONST pepe := 30
+CONST mal := "asd"
