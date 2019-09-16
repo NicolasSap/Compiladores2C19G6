@@ -184,14 +184,18 @@ int main(int argc,char *argv[]){
     if ((yyin = fopen(argv[1], "rt")) == NULL) {
 	    printf("\nNo se puede abrir el archivo: %s\n", argv[1]);
     } else {
-	    yyparse();
+        symbolTable = NULL;
+            do {
+                yyparse();
+            } while(!feof(yyin));
+        saveTable();
     }
     fclose(yyin);
     return 0;
 }
 
 int yyerror(void) {
-    printf("\n[!] Syntax Error\n\n");
+    printf("\n[!] Syntax Error en linea %d\n\n", yylineno);
 	system ("Pause");
 	exit (1);
 }
