@@ -6,7 +6,7 @@
 #include "y.tab.h"
 
 FILE  *yyin;
-int yylval;
+int   yylval;
 
 void checkearLimitesConstanteString();
 void checkearLimitesConstanteFloat();
@@ -18,13 +18,13 @@ void checkearLimitesConstanteInteger();
 %option yylineno
 
 DIGITO			[0-9]
-LETRA			[a-zA-Z]
+LETRA			  [a-zA-Z]
 ID			    {LETRA}({LETRA}|{DIGITO})*
-CTE_ENT         {DIGITO}+
-CTE_REAL        {DIGITO}*"."{DIGITO}+|{DIGITO}+"."{DIGITO}*|{DIGITO}+"."{DIGITO}+
-CTE_STRING      \".*\"
-COMMENT         "--\/".*"\/--"
-BLANK           [" "]
+CTE_ENT     {DIGITO}+
+CTE_REAL    {DIGITO}*"."{DIGITO}+|{DIGITO}+"."{DIGITO}*|{DIGITO}+"."{DIGITO}+
+CTE_STRING  \".*\"
+COMMENT     "--\/".*"\/--"
+BLANK       [" "]
 
 %%
 ":="			{ return OP_ASIG;}
@@ -38,33 +38,33 @@ BLANK           [" "]
 "]"				{ return C_C;}
 "{"				{ return L_A;} 
 "}"				{ return L_C;} 
-">"             { return OP_MAX;}
-">="            { return OP_MAXEQ;}
-"<"             { return OP_MIN;}
-"<="            { return OP_MINEQ;}
-"!="            { return OP_NEQ;}
-"=="            { return OP_EQ;}
-"="             { return EQ;}
-";"             { return PYC;}
-"."             { return PTO;}
-":"             { return DPTO;}
+">"       { return OP_MAX;}
+">="      { return OP_MAXEQ;}
+"<"       { return OP_MIN;}
+"<="      { return OP_MINEQ;}
+"!="      { return OP_NEQ;}
+"=="      { return OP_EQ;}
+"="       { return EQ;}
+";"       { return PYC;}
+"."       { return PTO;}
+":"       { return DPTO;}
 ","				{ return COMA;}
 "&&"			{ return AND;}
 "||"			{ return OR;}
 "!"				{ return NOT;}
 "IF"			{ return IF;}
-"ELSE"			{ return ELSE;}
-"ENDIF"			{ return ENDIF;}
-"REPEAT"		{ return REPEAT;}
-"UNTIL"			{ return UNTIL;}
+"ELSE"		{ return ELSE;}
+"ENDIF"		{ return ENDIF;}
+"REPEAT"	{ return REPEAT;}
+"UNTIL"		{ return UNTIL;}
 "VAR"			{ return VAR;}
-"ENDVAR"		{ return ENDVAR;}
-"INT"		    { return INT;}
-"FLOAT" 		{ return FLOAT;}
-"STRING"		{ return STRING;}
-"PRINT"			{ return PRINT;}
-"READ"			{ return READ;}
-"CONST"			{ return CONST;}
+"ENDVAR"	{ return ENDVAR;}
+"INT"		  { return INT;}
+"FLOAT" 	{ return FLOAT;}
+"STRING"	{ return STRING;}
+"PRINT"		{ return PRINT;}
+"READ"		{ return READ;}
+"CONST"		{ return CONST;}
 {ID}			{ return ID;}
 {COMMENT}             
 {CTE_STRING}	{ checkearLimitesConstanteString(); return CTE_STRING;}

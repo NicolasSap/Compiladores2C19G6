@@ -76,11 +76,13 @@ FILE  *yyin;
 
 %% 
 programa: 
-        program {printf("\nRegla 0 : Compilacion Ok\n");}
+        program                         {printf("\nRegla 00 : Compilacion Ok\n");}
 ;
 program: 
-        sentencia           {printf("\nRegla 1 : Sentencia\n");}
-    |   program sentencia   {printf("\nRegla 00 : Program\n");}
+        sentencia                       {printf("\nRegla 0 : Sentencia\n");}
+    |   program sentencia               {printf("\nRegla 0 : Program\n");}
+    |   definicion_variables            {printf("\nRegla 0 : Definicion Variables\n");} 
+    |   definicion_variables program    {printf("\nRegla 0 : Definicion Variables + program\n");} 
 ;
 sentencia: 
         asignacion_s    {printf("\nRegla 2 : Asignacion Simple\n");}
@@ -91,6 +93,27 @@ sentencia:
     |   obtain          {printf("\nRegla 6 : READ\n");}
     |   declaracion     {printf("\nRegla 7 : Declaracion\n");}
     |   cteNombre       {printf("\nRegla 8 : Constante Nombre\n");}
+;
+definicion_variables:
+        definicion_variables ENDVAR                     {printf("\nRegla 10 : Def Variable ENDVAR\n");}
+    |   definicion_variables declaracion_tipo_variable  {printf("\nRegla 11 : Def Variable DECLARACION\n");}
+    |   VAR declaracion_tipo_variable                   {printf("\nRegla 12 : Def Variable VAR DECLARACION\n");}
+
+;
+declaracion_tipo_variable:
+        declaracion_tipo_variable C_C DPTO declaracion_id   {printf("\nRegla 13 : Declaracion C_C\n");}
+    |   declaracion_tipo_variable COMA tipos_primitivos     {printf("\nRegla 14 : Declaracion MAS DE UNO\n");}
+    |   C_A tipos_primitivos                                {printf("\nRegla 15 : Declaracion C_A\n");}
+;
+tipos_primitivos:
+        STRING
+    |   FLOAT
+    |   INT
+;
+declaracion_id:
+        declaracion_id C_C        {printf("\nRegla 16 : Declaracion C_C\n");}
+    |   declaracion_id COMA ID    {printf("\nRegla 17 : COMA CTA_ENT\n");}
+    |   C_A ID                    {printf("\nRegla 18 : ID\n");}
 ;
 asignacion_s: 
         ID OP_ASIG expresion    {printf("\nRegla 9 : Asig Simple ID := EXPRESION\n");}
@@ -115,7 +138,7 @@ var:
 ;
 decision: 
         IF P_A condiciones P_C L_A program L_C ELSE L_A program L_C   {printf("\nRegla 20 : Decision con Else\n");}
-    |   IF P_A condiciones P_C L_A program L_C                          {printf("\nRegla 21 : Decision\n");}
+    |   IF P_A condiciones P_C L_A program L_C                        {printf("\nRegla 21 : Decision\n");}
 ;
 condiciones:
         condicion               

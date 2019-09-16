@@ -1,0 +1,3 @@
+VAR
+    [INT, INT] : [a,b,c,asdasdas]
+ENDVAR
