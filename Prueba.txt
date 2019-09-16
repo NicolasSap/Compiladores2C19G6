@@ -6,7 +6,7 @@ a := (((8 + c) - d) / 3 * 5)
 pepe := "asd"
 q := 31.33
 
-IF(a < c && a == 2) {
+IF(a < c && q == 31.33) {
 	IF (c > d) {
 		REPEAT
 			a:=a+1
@@ -17,11 +17,11 @@ IF(a < c && a == 2) {
 	}
 }
 
-IF ( ! a > c) {
+IF ( ! a != c) {
 	pepe := "pepe"
 }
 
-IF ( a == c || a == d) {
+IF ( a >= c || a <= d) {
 	pepe := "pepe1"
 }
 

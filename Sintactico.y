@@ -102,55 +102,55 @@ lista_var: lista_var COMA ID    {printf("\nRegla 23 : Lista, ID\n");}
 lista_exp: lista_exp COMA var   {printf("\nRegla 25 : Lista_EXP, ID\n");}
     |   var                     {printf("\nRegla 26 : Variable\n");}
 ;
-var: ID             {printf("\nRegla 27 : ID\n");}
-    |   CTE_ENT     {printf("\nRegla 28 : Entero\n");}
-    |   CTE_REAL    {printf("\nRegla 29 : Real\n");}
-    |   CTE_STRING  {printf("\nRegla 30 : String\n");}
+var: ID             {printf("\nRegla 27 : ID var\n");}
+    |   CTE_ENT     {printf("\nRegla 28 : Entero var\n");}
+    |   CTE_REAL    {printf("\nRegla 29 : Real var\n");}
+    |   CTE_STRING  {printf("\nRegla 30 : String var\n");}
 ;
 decision: IF P_A condiciones P_C L_A cuerpo_programa L_C ELSE L_A cuerpo_programa L_C   {printf("\nRegla 31 : Decision con Else\n");}
-    |   IF P_A condiciones P_C L_A cuerpo_programa L_C                          {printf("\nRegla 32 : Decision\n");}
+    |   IF P_A condiciones P_C L_A cuerpo_programa L_C {printf("\nRegla 32 : Decision\n");}
 ;
 condiciones: condicion {printf("\nRegla 33 : Condicion\n");}     
     |   condicion AND condicion {printf("\nRegla 34 : cond AND cond\n");}
     |   condicion OR condicion  {printf("\nRegla 35 : cond OR cond\n");}
     |   NOT condicion {printf("\nRegla 36 : NOT cond\n");}
 ;
-condicion: ID OP_MAX CTE_ENT    {printf("\nRegla 37 : ID > ENTERO\n");}
-    |   ID OP_MAX ID            {printf("\nRegla 38 : ID > ID\n");}
-    |   ID OP_MIN CTE_ENT       {printf("\nRegla 39 : ID < ENTERO\n");}
-    |   ID OP_MIN ID            {printf("\nRegla 40 : ID < ID\n");}
-    |   ID OP_MAXEQ CTE_ENT     {printf("\nRegla 41 : ID >= ENTERO\n");}
-    |   ID OP_MAXEQ ID          {printf("\nRegla 42 : ID >= ID\n");}
-    |   ID OP_MINEQ CTE_ENT     {printf("\nRegla 43 : ID <= ENTERO\n");}
-    |   ID OP_MINEQ ID          {printf("\nRegla 44 : ID <= ID\n");}
-    |   ID OP_EQ CTE_ENT        {printf("\nRegla 45 : ID == ENTERO\n");}
-    |   ID OP_EQ ID             {printf("\nRegla 46 : ID == ID\n");}
-    |   ID OP_NEQ CTE_ENT       {printf("\nRegla 47 : ID != ENTERO\n");}
-    |   ID OP_NEQ ID            {printf("\nRegla 48 : ID != ID\n");}
+condicion: ID operador_logico comparado    {printf("\nRegla 37 : ID Operador Logico Comparado\n");}
 ;
-iteracion: REPEAT cuerpo_programa UNTIL condiciones     {printf("\nRegla 49 : Repeat\n");}
-    |   REPEAT cuerpo_programa UNTIL NOT condiciones    {printf("\nRegla 50 : Repeat con NOT\n");}
+operador_logico: OP_MAX {printf("\nRegla 38 : >\n");}
+    |   OP_MIN  {printf("\nRegla 39 : <\n");}
+    |   OP_MINEQ {printf("\nRegla 40 : <=\n");}
+    |   OP_MAXEQ {printf("\nRegla 41 : >=\n");}
+    |   OP_EQ {printf("\nRegla 42 : ==\n");}
+    |   OP_NEQ {printf("\nRegla 43 : !=\n");}
 ;
-printear: PRINT CTE_STRING      {printf("\nRegla 51 : Print String\n");}
-    |   PRINT ID                {printf("\nRegla 52 : Print ID\n");}
+comparado: ID {printf("\nRegla 43 : ID Comparado\n");}
+    |   CTE_ENT {printf("\nRegla 44 : CTE_ENT Comparado\n");}
+    |   CTE_REAL {printf("\nRegla 45 : CTE_REAL Comparado\n");}
 ;
-obtain: READ ID {printf("\nRegla 53 : Read Variable\n");}
+iteracion: REPEAT cuerpo_programa UNTIL condiciones     {printf("\nRegla 46 : Repeat\n");}
+    |   REPEAT cuerpo_programa UNTIL NOT condiciones    {printf("\nRegla 47 : Repeat con NOT\n");}
 ;
-cteNombre: CONST ID OP_ASIG CTE_ENT     {printf("\nRegla 54 : Cte Con Nombre Entero\n");}
-    |   CONST ID OP_ASIG  CTE_STRING    {printf("\nRegla 55 : Cte Con Nombre String\n");}
+printear: PRINT CTE_STRING      {printf("\nRegla 48 : Print String\n");}
+    |   PRINT ID                {printf("\nRegla 49 : Print ID\n");}
 ;
-expresion: expresion OP_SUMA termino    {printf("\nRegla 56 : E + T\n");} 
-    |   expresion OP_RESTA termino      {printf("\nRegla 57 : E - T\n");} 
+obtain: READ ID {printf("\nRegla 50 : Read Variable\n");}
+;
+cteNombre: CONST ID OP_ASIG CTE_ENT     {printf("\nRegla 51 : Cte Con Nombre Entero\n");}
+    |   CONST ID OP_ASIG  CTE_STRING    {printf("\nRegla 52 : Cte Con Nombre String\n");}
+;
+expresion: expresion OP_SUMA termino    {printf("\nRegla 53 : E + T\n");} 
+    |   expresion OP_RESTA termino      {printf("\nRegla 54 : E - T\n");} 
     |   termino 
 ;
-termino: termino OP_MULT factor     {printf("\nRegla 58 : T * F\n");}
-    |   termino OP_DIV factor       {printf("\nRegla 59 : T / F\n");}
+termino: termino OP_MULT factor     {printf("\nRegla 55 : T * F\n");}
+    |   termino OP_DIV factor       {printf("\nRegla 56 : T / F\n");}
     |   factor 
 ;
-factor: ID                  {printf("\nRegla 60 : ID\n");}
-    |   CTE_ENT             {printf("\nRegla 61 : Entero\n");}
-    |   CTE_REAL            {printf("\nRegla 62 : Real\n");}
-    |   P_A expresion P_C   {printf("\nRegla 63 : (E)\n");}
+factor: ID                  {printf("\nRegla 57 : ID\n");}
+    |   CTE_ENT             {printf("\nRegla 58 : Entero\n");}
+    |   CTE_REAL            {printf("\nRegla 59 : Real\n");}
+    |   P_A expresion P_C   {printf("\nRegla 60 : (E)\n");}
 ;
 %%
 
@@ -169,7 +169,7 @@ int main(int argc,char *argv[]){
 }
 
 int yyerror(void) {
-    printf("\n[!] Syntax Error en linea %d\n\n", yylineno);
+    printf("\n[!] Syntax Error on line %d\n\n", yylineno);
 	system ("Pause");
 	exit (1);
 }
