@@ -65,11 +65,11 @@ BLANK       [" "]
 "PRINT"		{ return PRINT;}
 "READ"		{ return READ;}
 "CONST"		{ return CONST;}
-{ID}			{ return ID;}
+{ID}			{ insert(yytext); return ID;}
 {COMMENT}             
-{CTE_STRING}	{ checkearLimitesConstanteString(); return CTE_STRING;}
-{CTE_ENT}		{ checkearLimitesConstanteInteger(); return CTE_ENT;}
-{CTE_REAL}		{ checkearLimitesConstanteFloat(); return CTE_REAL;}
+{CTE_STRING}	{ checkearLimitesConstanteString(); insert(yytext); return CTE_STRING;}
+{CTE_ENT}		{ checkearLimitesConstanteInteger(); insert(yytext); return CTE_ENT;}
+{CTE_REAL}		{ checkearLimitesConstanteFloat(); insert(yytext); return CTE_REAL;}
 "BLANK"
 "\n"
 "\t"

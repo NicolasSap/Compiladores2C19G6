@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <conio.h>
 #include "y.tab.h"
+#include "simbolo.h"
+
 int yystopparser=0;
 FILE  *yyin;
 %}
