@@ -6,6 +6,7 @@
 #include "simbolo.h"
 
 int yystopparser=0;
+extern yylineno;
 FILE  *yyin;
 %}
 
