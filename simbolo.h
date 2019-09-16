@@ -11,6 +11,11 @@ typedef struct listSymbol {
     struct listSymbol* next;
 } symbolNode;
 
+typedef struct symbolIdentifier {
+    char *value;
+    struct symbolIdentifier* next;
+} identifierNode;
+
 symbolNode* symbolTable;
 symbolNode* insert();
 symbolNode* findSymbol();
@@ -18,6 +23,11 @@ void putTypeIdentifierOnSymbolTable();
 void concatenate();
 void removeChar();
 void saveTable();
+// Symbol Identifier auxiliars
+identifierNode* identifierList;
+identifierNode* insertIdentifier();
+identifierNode* findIdentifier();
+void clearIdentifierList();
 
 symbolNode* insert(char* value) {
     symbolNode* foundNode = findSymbol(value);
@@ -63,6 +73,57 @@ symbolNode* insert(char* value) {
     symbolTable = node;
     return node;
 }
+
+identifierNode* insertIdentifier(char *name) {
+    identifierNode* foundNode = findIdentifier(name);
+    if (foundNode != NULL) {
+        return foundNode;
+    }
+    identifierNode* node = (identifierNode*) malloc(sizeof(identifierNode));
+    int len = strlen(name);
+    char* valueToInsert = (char *) malloc(len+1);
+    strcpy(valueToInsert, name);
+    node->value = valueToInsert;
+    node->next = identifierList;
+    identifierList = node;
+    return node;
+}
+
+identifierNode* findIdentifier(char* value) {
+    identifierNode* identifierNode = identifierList;
+    while(identifierNode != NULL) {
+        if (strcmp(value, identifierNode->value) == 0) {
+            return identifierNode;
+        }
+        identifierNode = identifierNode->next;
+    }
+    return NULL;
+}
+
+void putTypeIdentifierOnSymbolTable(char* type) {
+    identifierNode* identifierNode = identifierList;
+    while(identifierNode != NULL) {
+        symbolNode* symbol = findSymbol(identifierNode->value);
+        // Symbol should never be NULL but just in case..
+        if (symbol != NULL) {
+            if (strlen(symbol->type) != 0) {
+                fprintf(stderr, "\n ERROR: Variable %s has been already declared", symbol->name);
+                exit(1);
+            }
+            int len = strlen(type);
+            char* valueToInsert = (char*) malloc(len+1);
+            strcpy(valueToInsert, type);
+            strcpy(symbol->type, valueToInsert);
+        }
+        identifierNode = identifierNode->next;
+    }
+    clearIdentifierList();
+}
+
+void clearIdentifierList() {
+    identifierList = NULL;
+}
+
 
 void saveTable() {
     FILE *file = fopen("ts.txt", "w");

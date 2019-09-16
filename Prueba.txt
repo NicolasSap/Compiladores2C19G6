@@ -1,6 +1,9 @@
-
+VAR
+	[INT,INT,INT]:[a,c,d]
+ENDVAR
 a := (((8 + c) + d) / 3)
-
+a := "asd"
+a := 31.33
 
 
 
