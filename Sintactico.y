@@ -107,8 +107,8 @@ var: ID             {printf("\nRegla 27 : ID\n");}
     |   CTE_REAL    {printf("\nRegla 29 : Real\n");}
     |   CTE_STRING  {printf("\nRegla 30 : String\n");}
 ;
-decision: IF P_A condiciones P_C L_A program L_C ELSE L_A program L_C   {printf("\nRegla 31 : Decision con Else\n");}
-    |   IF P_A condiciones P_C L_A program L_C                          {printf("\nRegla 32 : Decision\n");}
+decision: IF P_A condiciones P_C L_A cuerpo_programa L_C ELSE L_A cuerpo_programa L_C   {printf("\nRegla 31 : Decision con Else\n");}
+    |   IF P_A condiciones P_C L_A cuerpo_programa L_C                          {printf("\nRegla 32 : Decision\n");}
 ;
 condiciones: condicion {printf("\nRegla 33 : Condicion\n");}     
     |   condicion AND condicion {printf("\nRegla 34 : cond AND cond\n");}
@@ -128,8 +128,8 @@ condicion: ID OP_MAX CTE_ENT    {printf("\nRegla 37 : ID > ENTERO\n");}
     |   ID OP_NEQ CTE_ENT       {printf("\nRegla 47 : ID != ENTERO\n");}
     |   ID OP_NEQ ID            {printf("\nRegla 48 : ID != ID\n");}
 ;
-iteracion: REPEAT program UNTIL condiciones     {printf("\nRegla 49 : Repeat\n");}
-    |   REPEAT program UNTIL NOT condiciones    {printf("\nRegla 50 : Repeat con NOT\n");}
+iteracion: REPEAT cuerpo_programa UNTIL condiciones     {printf("\nRegla 49 : Repeat\n");}
+    |   REPEAT cuerpo_programa UNTIL NOT condiciones    {printf("\nRegla 50 : Repeat con NOT\n");}
 ;
 printear: PRINT CTE_STRING      {printf("\nRegla 51 : Print String\n");}
     |   PRINT ID                {printf("\nRegla 52 : Print ID\n");}

@@ -1,9 +1,39 @@
 VAR
-	[INT,INT,INT]:[a,c,d]
+	[INT,INT,INT,STRING,FLOAT]:[a,c,d,pepe,q]
 ENDVAR
-a := (((8 + c) + d) / 3)
-a := "asd"
-a := 31.33
 
+a := (((8 + c) - d) / 3 * 5)
+pepe := "asd"
+q := 31.33
 
+IF(a < c && a == 2) {
+	IF (c > d) {
+		REPEAT
+			a:=a+1
+			REPEAT
+				d:=d+1
+			UNTIL d == 0
+		UNTIL a == c
+	}
+}
 
+IF ( ! a > c) {
+	pepe := "pepe"
+}
+
+IF ( a == c || a == d) {
+	pepe := "pepe1"
+}
+
+a := 65535
+pepe := "123456789012345678901234567890"
+q := 3.4028230000000000000000000000000000000
+
+PRINT pepe
+PRINT "asd"
+READ a
+
+[a,pepe,d,q] := [1,"hola",a,1.33]
+
+CONST z := 30
+CONST x := "asd"
