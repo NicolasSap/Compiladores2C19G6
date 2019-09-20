@@ -16,6 +16,8 @@ char currentIdentifierDeclarationType[9];
 char* seen[200];
 int seenIndex = 0;
 
+int flagDeclaration = 0;
+
 int yystopparser=0;
 extern yylineno;
 FILE  *yyin;
@@ -115,7 +117,7 @@ program: definiciones_variables                  {printf("\nRegla 1 : Definicion
     |   definiciones_variables cuerpo_programa   {printf("\nRegla 2 : Definicion Variables + program\n");} 
 ;
 cuerpo_programa: sentencia                  {printf("\nRegla 3 : Sentencia\n");}
-    |   cuerpo_programa sentencia           {printf("\nRegla 4 : Program Sentencia\n");}
+    |   cuerpo_programa sentencia           {flagDeclaration = 1; printf("\nRegla 4 : Program Sentencia\n");}
 ;
 sentencia: asignacion_s     {printf("\nRegla 5 : Asignacion Simple\n");}
     |   asignacion_m        {printf("\nRegla 6 : Asignacion Multiple\n");}
@@ -144,8 +146,8 @@ asignacion_s: ID OP_ASIG expresion  {printf("\nRegla 21 : Asig Simple ID := EXPR
 ;
 asignacion_m: C_A lista_var C_C OP_ASIG C_A lista_exp C_C  {printf("\nRegla 23 : Asignacion Multiple Lista\n");}
 ;
-lista_var: lista_var COMA ID    {validateIdDeclaration($3); insertIdentifier($3); printf("\nRegla 24 : Lista, ID\n");}
-    |   ID                      {validateIdDeclaration($1); insertIdentifier($1); printf("\nRegla 25 : Lista ID\n");}
+lista_var: lista_var COMA ID    {if(flagDeclaration == 0){validateIdDeclaration($3); insertIdentifier($3);} printf("\nRegla 24 : Lista, ID\n");}
+    |   ID                      {if(flagDeclaration == 0){validateIdDeclaration($1); insertIdentifier($1);} printf("\nRegla 25 : Lista ID\n");}
 ;
 lista_exp: lista_exp COMA expresion   {printf("\nRegla 26 : Lista_EXP, Expresion\n");}
     |   lista_exp COMA CTE_STRING   {printf("\nRegla 27 : Lista_EXP, String\n");}
