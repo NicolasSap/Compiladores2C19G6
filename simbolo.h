@@ -146,7 +146,7 @@ void putTypeIdentifierOnSymbolTable() {
     clearTypeIdentifierList();
 }
 
-void putConstOnSymbolTable(char* id, char* value, int numb, char* type) {
+void putConstOnSymbolTable(char* id, char* value, int numb, float fnumb, char* type, int option) {
     symbolNode* symbol = fSymbol(id);
     // Symbol should never be NULL but just in case..
     if (symbol != NULL) {
@@ -158,15 +158,20 @@ void putConstOnSymbolTable(char* id, char* value, int numb, char* type) {
         char* valueToInsert = (char*) malloc(len+1);
         strcpy(valueToInsert, type);
         strcpy(symbol->type, valueToInsert);
-        if(strcmp(value,"") == 0) {
+        if (option == 1) {
             char s[220];
             itoa(numb, s, 10);
             strcpy(symbol->value,s);
             symbol->length = 0;
-        } else {
+        } else if (option == 2) {
             removeChar(value,'"');
             strcpy(symbol->value, value);
             symbol->length = strlen(value);
+        } else if (option == 3) {
+            char s[220];
+            gcvt (fnumb, 7, s);
+            strcpy(symbol->value,s);
+            symbol->length = 0;
         }
         
     }

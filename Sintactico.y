@@ -9,9 +9,6 @@
 void validateAsignation();
 void validateType();
 void validateIdDeclaration();
-void saveIdentifierDeclarationType();
-
-char currentIdentifierDeclarationType[9];
 
 char* seen[200];
 int seenIndex = 0;
@@ -179,8 +176,9 @@ printear: PRINT CTE_STRING      {printf("\nRegla 42 : Print String\n");}
 ;
 obtain: READ ID {printf("\nRegla 44 : Read Variable\n");}
 ;
-cteNombre: CONST ID OP_ASIG CTE_ENT     {putConstOnSymbolTable($2, "", $4, "CONST_ENT"); printf("\nRegla 45 : Cte Con Nombre Entero\n");}
-    |   CONST ID OP_ASIG  CTE_STRING    {putConstOnSymbolTable($2, $4, 0, "CONST_STRING"); printf("\nRegla 46 : Cte Con Nombre String\n");}
+cteNombre: CONST ID OP_ASIG CTE_ENT     {putConstOnSymbolTable($2, "", $4, 0, "CONST_ENT", 1); printf("\nRegla 45 : Cte Con Nombre Entero\n");}
+    |   CONST ID OP_ASIG  CTE_STRING    {putConstOnSymbolTable($2, $4, 0, 0, "CONST_STRING", 2); printf("\nRegla 46 : Cte Con Nombre String\n");}
+    |   CONST ID OP_ASIG  CTE_REAL    {putConstOnSymbolTable($2, "", 0, $4, "CONST_FLOAT", 3); printf("\nRegla 46 : Cte Con Nombre Float\n");}
 ;
 expresion: expresion OP_SUMA termino    {printf("\nRegla 47 : E + T\n");} 
     |   expresion OP_RESTA termino      {printf("\nRegla 48 : E - T\n");} 
@@ -229,9 +227,6 @@ void validateIdDeclaration(char* id) {
     seenIndex++;
 }
 
-void saveIdentifierDeclarationType(char* identiferName) {
-  strcpy(currentIdentifierDeclarationType, identiferName);
-}
 /*
 
 ID OP_ASIG expresion  {validateAsignation($1, $3); printf("\nRegla 18 : Asig Simple ID := EXPRESION\n");}
