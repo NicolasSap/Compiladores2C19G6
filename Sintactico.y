@@ -4,6 +4,17 @@
 #include <conio.h>
 #include "y.tab.h"
 #include "simbolo.h"
+#include "tree.h"
+
+void validateAsignation();
+void validateType();
+void validateIdDeclaration();
+void saveIdentifierDeclarationType();
+
+char currentIdentifierDeclarationType[9];
+
+char* seen[200];
+int seenIndex = 0;
 
 int yystopparser=0;
 extern yylineno;
@@ -60,13 +71,48 @@ FILE  *yyin;
 %left   OR
 %left   NOT
 
+%type <integer_value> CTE_ENT
+%type <float_value> CTE_REAL
+%type <string_value> CTE_STRING
+%type <string_value> ID
+%type <string_value> INT
+%type <string_value> STRING
+%type <string_value> FLOAT
+%type <ast> program
+%type <ast> cuerpo_programa
+%type <ast> sentencia
+%type <ast> lista_de_tipos
+%type <ast> tipos_primitivos
+%type <ast> asignacion_s
+%type <ast> asignacion_m
+%type <ast> lista_var
+%type <ast> lista_exp
+%type <ast> decision
+%type <ast> condiciones
+%type <ast> condicion
+%type <ast> operador_logico
+%type <ast> iteracion
+%type <ast> printear
+%type <ast> obtain
+%type <ast> cteNombre
+%type <ast> expresion
+%type <ast> termino
+%type <ast> factor
+
+%union {
+  int integer_value;
+  float float_value;
+  char string_value[30];
+  struct treeNode* ast;
+}
+
 %start  programa
 
 %% 
 programa: program   {printf("\nRegla 00 : Compilacion Ok\n");}
 ;
-program: definicion_variables                  {printf("\nRegla 1 : Definicion Variables\n");} 
-    |   definicion_variables cuerpo_programa   {printf("\nRegla 2 : Definicion Variables + program\n");} 
+program: definiciones_variables                  {printf("\nRegla 1 : Definicion Variables\n");} 
+    |   definiciones_variables cuerpo_programa   {printf("\nRegla 2 : Definicion Variables + program\n");} 
 ;
 cuerpo_programa: sentencia                  {printf("\nRegla 3 : Sentencia\n");}
     |   cuerpo_programa sentencia           {printf("\nRegla 4 : Program Sentencia\n");}
@@ -79,32 +125,37 @@ sentencia: asignacion_s     {printf("\nRegla 5 : Asignacion Simple\n");}
     |   obtain              {printf("\nRegla 10 : READ\n");}
     |   cteNombre           {printf("\nRegla 11 : Constante Nombre\n");}
 ;
-definicion_variables: VAR C_A lista_de_tipos C_C DPTO C_A lista_var C_C ENDVAR {printf("\nRegla 12 : Def Variable VAR - ENDVAR\n");}
+definiciones_variables: VAR definicion_variables ENDVAR {printf("\nRegla 12 : VAR def_Var ENDVAR\n");}
 ;
-lista_de_tipos: lista_de_tipos COMA tipos_primitivos {printf("\nRegla 13 : Lista_Tipos, Tipo_Primitivo\n");}
-    | tipos_primitivos {printf("\nRegla 14 : Tipo_Primitivo\n");}
+definicion_variables: definicion_variables def {printf("\nRegla 13 : Def Variable Multiple Linea\n");}
+    |   def {printf("\nRegla 14 : Def Variable Simple Linea\n");}
 ;
-tipos_primitivos:   STRING {printf("\nRegla 15 : Tipo_Primitivo String\n");}
-    |   FLOAT {printf("\nRegla 16 : Tipo_Primitivo Float\n");}
-    |   INT {printf("\nRegla 17 : Tipo_Primitivo Int\n");}
+def: C_A lista_de_tipos C_C DPTO C_A lista_var C_C {putTypeIdentifierOnSymbolTable(); printf("\nRegla 15 : Lista Tipos - Lista Vars\n");}
 ;
-asignacion_s: ID OP_ASIG expresion  {printf("\nRegla 18 : Asig Simple ID := EXPRESION\n");}
-    |   ID OP_ASIG CTE_STRING       {printf("\nRegla 19 : Asig Simple ID := STRING\n");}
+lista_de_tipos: lista_de_tipos COMA tipos_primitivos {printf("\nRegla 16 : Lista_Tipos, Tipo_Primitivo\n");}
+    | tipos_primitivos {printf("\nRegla 17 : Tipo_Primitivo\n");}
 ;
-asignacion_m: C_A lista_var C_C OP_ASIG C_A lista_exp C_C  {printf("\nRegla 20 : Asignacion Multiple Lista\n");}
+tipos_primitivos:   STRING {insertTypeIdentifier($1); printf("\nRegla 18 : Tipo_Primitivo String\n");}
+    |   FLOAT {insertTypeIdentifier($1); printf("\nRegla 19 : Tipo_Primitivo Float\n");}
+    |   INT {insertTypeIdentifier($1); printf("\nRegla 20 : Tipo_Primitivo Int\n");}
 ;
-lista_var: lista_var COMA ID    {printf("\nRegla 21 : Lista, ID\n");}
-    |   ID                      {printf("\nRegla 22 : Lista ID\n");}
+asignacion_s: ID OP_ASIG expresion  {printf("\nRegla 21 : Asig Simple ID := EXPRESION\n");}
+    |   ID OP_ASIG CTE_STRING       {printf("\nRegla 22 : Asig Simple ID := STRING\n");}
 ;
-lista_exp: lista_exp COMA expresion   {printf("\nRegla 23 : Lista_EXP, Expresion\n");}
-    |   lista_exp COMA CTE_STRING   {printf("\nRegla 24 : Lista_EXP, String\n");}
-    |   expresion                     {printf("\nRegla 25 : Expresion\n");}
-    |   CTE_STRING  {printf("\nRegla 26 : String\n");}
+asignacion_m: C_A lista_var C_C OP_ASIG C_A lista_exp C_C  {printf("\nRegla 23 : Asignacion Multiple Lista\n");}
 ;
-decision: IF P_A condiciones P_C L_A cuerpo_programa L_C ELSE L_A cuerpo_programa L_C   {printf("\nRegla 27 : Decision con Else\n");}
-    |   IF P_A condiciones P_C L_A cuerpo_programa L_C {printf("\nRegla 28 : Decision\n");}
+lista_var: lista_var COMA ID    {validateIdDeclaration($3); insertIdentifier($3); printf("\nRegla 24 : Lista, ID\n");}
+    |   ID                      {validateIdDeclaration($1); insertIdentifier($1); printf("\nRegla 25 : Lista ID\n");}
 ;
-condiciones: condicion {printf("\nRegla 29 : Condicion\n");}     
+lista_exp: lista_exp COMA expresion   {printf("\nRegla 26 : Lista_EXP, Expresion\n");}
+    |   lista_exp COMA CTE_STRING   {printf("\nRegla 27 : Lista_EXP, String\n");}
+    |   expresion                     {printf("\nRegla 28 : Expresion\n");}
+    |   CTE_STRING  {printf("\nRegla 29 : String\n");}
+;
+decision: IF P_A condiciones P_C L_A cuerpo_programa L_C ELSE L_A cuerpo_programa L_C   {printf("\nRegla 27* : Decision con Else\n");}
+    |   IF P_A condiciones P_C L_A cuerpo_programa L_C {printf("\nRegla 28* : Decision\n");}
+;
+condiciones: condicion {printf("\nRegla 29* : Condicion\n");}     
     |   condicion AND condicion {printf("\nRegla 30 : cond AND cond\n");}
     |   condicion OR condicion  {printf("\nRegla 31 : cond OR cond\n");}
     |   NOT condicion {printf("\nRegla 32 : NOT cond\n");}
@@ -126,8 +177,8 @@ printear: PRINT CTE_STRING      {printf("\nRegla 42 : Print String\n");}
 ;
 obtain: READ ID {printf("\nRegla 44 : Read Variable\n");}
 ;
-cteNombre: CONST ID OP_ASIG CTE_ENT     {printf("\nRegla 45 : Cte Con Nombre Entero\n");}
-    |   CONST ID OP_ASIG  CTE_STRING    {printf("\nRegla 46 : Cte Con Nombre String\n");}
+cteNombre: CONST ID OP_ASIG CTE_ENT     {putConstOnSymbolTable($2, "", $4, "CONST_ENT"); printf("\nRegla 45 : Cte Con Nombre Entero\n");}
+    |   CONST ID OP_ASIG  CTE_STRING    {putConstOnSymbolTable($2, $4, 0, "CONST_STRING"); printf("\nRegla 46 : Cte Con Nombre String\n");}
 ;
 expresion: expresion OP_SUMA termino    {printf("\nRegla 47 : E + T\n");} 
     |   expresion OP_RESTA termino      {printf("\nRegla 48 : E - T\n");} 
@@ -163,3 +214,69 @@ int yyerror(void) {
 	system ("Pause");
 	exit (1);
 }
+
+void validateIdDeclaration(char* id) {
+    int i = 0;
+    for(i = 0; i < seenIndex; i++) {
+        if(strcmp(seen[i], id) == 0) {
+            fprintf(stderr, "\n Identificator already declared, line: %d\n", yylineno);
+            exit(1);
+        }
+    }
+    seen[seenIndex] = strdup(id);
+    seenIndex++;
+}
+
+void saveIdentifierDeclarationType(char* identiferName) {
+  strcpy(currentIdentifierDeclarationType, identiferName);
+}
+/*
+
+ID OP_ASIG expresion  {validateAsignation($1, $3); printf("\nRegla 18 : Asig Simple ID := EXPRESION\n");}
+
+void validateAsignation(char* id, ast* exp) {
+    printf("Entre a verficar la asignacion\n\n");
+    symbolNode* symbol = findSymbol(id);
+    printf("ROMPI ACA\n\n");
+    symbolNode* treeValue = findSymbol(exp->value);
+    printf("Entrando IF\n\n");
+    if (symbol != NULL && treeValue != NULL) {
+        printf("IF 1\n\n");
+        if((strcmp(symbol->type, "INT") == 0 || strcmp(symbol->type, "FLOAT") == 0) && (strcmp(treeValue->type, "STRING") == 0 || strcmp(treeValue->type, "STRING_C") == 0 )) {
+            printf("ADENTRO IF 1\n\n");
+            fprintf(stderr, "\n Incompatible assignment, line: %d\n", yylineno);
+            exit(1);
+        }
+        printf("IF 2\n\n");
+        if((strcmp(symbol->type, "STRING") == 0) && (strcmp(treeValue->type, "INT") == 0 || strcmp(treeValue->type, "FLOAT") == 0  || strcmp(treeValue->type, "INTEGER_C") == 0 || strcmp(treeValue->type, "FLOAT_C") == 0 )) {
+            printf("ADENTRO IF 2\n\n");
+            fprintf(stderr, "\n Incompatible assignment, line: %d\n", yylineno);
+            exit(1);
+        }
+    }
+}
+*/
+/*
+expresion OP_SUMA termino    {validateType($1, $3, 1); printf("\nRegla 47 : E + T\n");} 
+
+
+void validateType(ast* left, ast* right, int fail) {      
+    printf("Entre a verficar los Tipos en una expresion\n\n");
+    if(right->value != NULL) {
+        printf("A\n\n");
+        symbolNode* symbolLeft = findSymbol(left->value);
+        printf("B\n\n");
+        symbolNode* symbolRight = findSymbol(right->value);
+        if(symbolRight != NULL && symbolLeft != NULL) {
+        if(fail == 1 && (
+            strcmp(symbolLeft->type, "STRING") == 0 || 
+            strcmp(symbolLeft->type, "STRING_C") == 0 ||
+            strcmp(symbolRight->type, "STRING") == 0 || 
+            strcmp(symbolRight->type, "STRING_C") == 0)) {
+            fprintf(stderr, "\n Incompatible operation, line: %d\n", yylineno);
+            exit(1);
+        }
+        }
+    }
+}
+*/

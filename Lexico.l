@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <conio.h>
 #include <float.h>
+#include <string.h>
 #include "y.tab.h"
 
 FILE  *yyin;
-int   yylval;
 
 void checkearLimitesConstanteString();
 void checkearLimitesConstanteFloat();
@@ -59,17 +59,17 @@ BLANK       [" "]
 "UNTIL"		{ return UNTIL;}
 "VAR"			{ return VAR;}
 "ENDVAR"	{ return ENDVAR;}
-"INT"		  { return INT;}
-"FLOAT" 	{ return FLOAT;}
-"STRING"	{ return STRING;}
+"INT"		  { strcpy(yylval.string_value, yytext); return INT;}
+"FLOAT" 	{ strcpy(yylval.string_value, yytext); return FLOAT;}
+"STRING"	{ strcpy(yylval.string_value, yytext); return STRING;}
 "PRINT"		{ return PRINT;}
 "READ"		{ return READ;}
 "CONST"		{ return CONST;}
-{ID}			{ insert(yytext); return ID;}
+{ID}			{ strcpy(yylval.string_value, yytext); insert(yytext); return ID;}
 {COMMENT}             
-{CTE_STRING}	{ checkearLimitesConstanteString(); insert(yytext); return CTE_STRING;}
-{CTE_ENT}		{ checkearLimitesConstanteInteger(); insert(yytext); return CTE_ENT;}
-{CTE_REAL}		{ checkearLimitesConstanteFloat(); insert(yytext); return CTE_REAL;}
+{CTE_STRING}	{ checkearLimitesConstanteString(); strcpy(yylval.string_value, yytext); insert(yytext); return CTE_STRING;}
+{CTE_ENT}		{ checkearLimitesConstanteInteger(); yylval.integer_value = atoi(yytext); insert(yytext); return CTE_ENT;}
+{CTE_REAL}		{ checkearLimitesConstanteFloat(); yylval.float_value = atof(yytext); insert(yytext); return CTE_REAL;}
 "BLANK"
 "\n"
 "\t"
