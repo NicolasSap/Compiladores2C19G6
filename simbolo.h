@@ -20,11 +20,13 @@ symbolNode* symbolTable;
 symbolNode* insert();
 symbolNode* findSymbol();
 symbolNode* fSymbol();
+void deleteIfSizeDiff();
 void putTypeIdentifierOnSymbolTable();
 void concatenate();
 void removeChar();
 void saveTable();
 void printTable();
+void printTable1();
 char* getSymbolName();
 // Symbol Identifier auxiliars
 identifierNode* identifierList;
@@ -122,7 +124,44 @@ identifierNode* findIdentifier(char* value) {
     return NULL;
 }
 
+void deleteFromTS(char* val) {
+    symbolNode* aux = symbolTable;
+    symbolTable = symbolTable->next;
+    free(aux);
+}
+
+void deleteIfSizeDiff(identifierNode* list, identifierNode* list1) { // borra el sobrante de la lista
+    identifierNode* l = list;
+    identifierNode* d = list;
+    identifierNode* l1 = list1;
+    identifierNode* d1 = list1;
+    int cant = 0;
+    int cant1 = 0;
+    while(l != NULL){
+        cant++;
+        l = l->next;
+    }
+    while(l1 != NULL){
+        cant1++;
+        l1 = l1->next;
+    }
+    if(cant >= cant1) {
+        // antes deberia mandarlo a sacar a la lista de simbolos
+        //borrar el primer id
+        printTable(symbolTable);
+        deleteFromTS(d->value);
+        printTable(symbolTable);
+        identifierList = identifierList->next;
+        free(d);
+    }else if (cant < cant1){
+        // borrar el primer tipo dato
+        identifierTypeList = identifierTypeList->next;
+        free(d1);
+    }
+}
+
 void putTypeIdentifierOnSymbolTable() {
+    deleteIfSizeDiff(identifierList, identifierTypeList);
     identifierNode* identifierTypeNode = identifierTypeList;
     identifierNode* identifierNode = identifierList;
     while(identifierNode != NULL && identifierTypeNode != NULL) {
@@ -274,6 +313,16 @@ void printTable() {
     printf("\nNOMBRE\tTIPODATO\tVALOR\tLONGITUD\n");
     while(current != NULL){
         printf("%s\t%s\t%s\t%d\n", current->name, current->type, current->value, current->length);
+        current = current->next;
+    }   
+}
+
+void printTable1(identifierNode* a) {
+    identifierNode* current = a;
+    printf("\n LISTA DE TIPO DATO O ID \n");
+    printf("\nVALOR\n");
+    while(current != NULL){
+        printf("%s\n", current->value);
         current = current->next;
     }   
 }

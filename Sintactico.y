@@ -38,13 +38,6 @@ FILE  *yyin;
 %token  PTO
 %token  DPTO
 %token  COMA
-%token  OP_MAX
-%token  OP_MAXEQ
-%token  OP_MIN
-%token  OP_MINEQ
-%token  OP_NEQ
-%token  OP_EQ
-%token  EQ
 %token  IF
 %token  ELSE
 %token  ENDIF
@@ -58,9 +51,7 @@ FILE  *yyin;
 %token  INT
 %token  FLOAT
 %token  STRING
-
-%right  MENOS_UNARIO
-%right  OP_ASIG
+%token  OP_ASIG
 
 %left   OP_SUMA
 %left   OP_RESTA
@@ -69,6 +60,15 @@ FILE  *yyin;
 %left   AND
 %left   OR
 %left   NOT
+%left   OP_MAX
+%left   OP_MAXEQ
+%left   OP_MIN
+%left   OP_MINEQ
+%left   OP_NEQ
+%left   OP_EQ
+%left   EQ
+
+%right  MENOS_UNARIO
 
 %type <integer_value> CTE_ENT
 %type <float_value> CTE_REAL
