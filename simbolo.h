@@ -145,12 +145,10 @@ void deleteIfSizeDiff(identifierNode* list, identifierNode* list1) { // borra el
         cant1++;
         l1 = l1->next;
     }
-    if(cant >= cant1) {
+    if(cant > cant1) {
         // antes deberia mandarlo a sacar a la lista de simbolos
         //borrar el primer id
-        printTable(symbolTable);
         deleteFromTS(d->value);
-        printTable(symbolTable);
         identifierList = identifierList->next;
         free(d);
     }else if (cant < cant1){

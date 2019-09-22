@@ -5,15 +5,16 @@
 
 // Ast stands for Abstract Syntax Tree
 
-void printAndSaveAST();
-void printAST();
-
 typedef struct treeNode {
     char* value;
     struct treeNode* left;
     struct treeNode* right;
 } ast;
 
+void printAndSaveAST();
+void printAST();
+ast* newNode();
+ast* newLeaf();
 
 FILE *file;
 

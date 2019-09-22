@@ -18,6 +18,7 @@ int flagDeclaration = 0;
 int yystopparser=0;
 extern yylineno;
 FILE  *yyin;
+ast* tree;
 %}
 
 %token  DIGITO
@@ -77,6 +78,7 @@ FILE  *yyin;
 %type <string_value> INT
 %type <string_value> STRING
 %type <string_value> FLOAT
+%type <ast> programa
 %type <ast> program
 %type <ast> cuerpo_programa
 %type <ast> sentencia
@@ -86,99 +88,104 @@ FILE  *yyin;
 %type <ast> asignacion_m
 %type <ast> lista_var
 %type <ast> lista_exp
+%type <ast> tipo_exp
 %type <ast> decision
 %type <ast> condiciones
 %type <ast> condicion
-%type <ast> operador_logico
 %type <ast> iteracion
 %type <ast> printear
 %type <ast> obtain
 %type <ast> cteNombre
+%type <ast> constExp
 %type <ast> expresion
 %type <ast> termino
 %type <ast> factor
+%type <auxLogicOperator> operador_logico
 
 %union {
   int integer_value;
   float float_value;
   char string_value[30];
   struct treeNode* ast;
+  char* auxLogicOperator;
 }
 
 %start  programa
 
 %% 
-programa: program   {printf("\nRegla 00 : Compilacion Ok\n");}
+programa: program   {$$ = $1; tree = $$; printf("\nRegla 00 : Compilacion Ok\n");}
 ;
-program: definiciones_variables cuerpo_programa   {printf("\nRegla 1 : Definicion Variables + program\n");} 
+program: definiciones_variables cuerpo_programa   {$$ = $2; printf("\nRegla 1 : Definicion Variables + program\n");} 
     |   definiciones_variables                  {printf("\nRegla 2 : Definicion Variables\n");} 
 ;
-cuerpo_programa: cuerpo_programa sentencia {flagDeclaration = 1; printf("\nRegla 3 : Program Sentencia\n");}
-    |   sentencia {printf("\nRegla 4 : Sentencia\n");}
+cuerpo_programa: cuerpo_programa sentencia {flagDeclaration = 1; $$ = newNode("Cuerpo_Programa",$1,$2); printf("\nRegla 3 : Program Sentencia\n");}
+    |   sentencia {$$ = $1; printf("\nRegla 4 : Sentencia\n");}
 ;
-sentencia: asignacion_s     {printf("\nRegla 5 : Asignacion Simple\n");}
-    |   asignacion_m        {printf("\nRegla 6 : Asignacion Multiple\n");}
-    |   decision            {printf("\nRegla 7 : Decision\n");}
-    |   iteracion           {printf("\nRegla 8 : Iteracion\n");}
-    |   printear            {printf("\nRegla 9 : Print\n");}
-    |   obtain              {printf("\nRegla 10 : READ\n");}
-    |   cteNombre           {printf("\nRegla 11 : Constante Nombre\n");}
+sentencia: asignacion_s     {$$ = $1; printf("\nRegla 5 : Asignacion Simple\n");}
+    |   asignacion_m        {$$ = $1; printf("\nRegla 6 : Asignacion Multiple\n");}
+    |   decision            {$$ = $1; printf("\nRegla 7 : Decision\n");}
+    |   iteracion           {$$ = $1; printf("\nRegla 8 : Iteracion\n");}
+    |   printear            {$$ = $1; printf("\nRegla 9 : Print\n");}
+    |   obtain              {$$ = $1; printf("\nRegla 10 : READ\n");}
+    |   cteNombre           {$$ = $1; printf("\nRegla 11 : Constante Nombre\n");}
 ;
-asignacion_s: ID OP_ASIG expresion  {printf("\nRegla 12 : Asig Simple ID := EXPRESION\n");}
-    |   ID OP_ASIG CTE_STRING       {printf("\nRegla 13 : Asig Simple ID := STRING\n");}
+asignacion_s: ID OP_ASIG expresion  {$$ = newNode(":=",newLeaf($1),$3); printf("\nRegla 12 : Asig Simple ID := EXPRESION\n");}
+    |   ID OP_ASIG CTE_STRING       {$$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName(&($3),3))); printf("\nRegla 13 : Asig Simple ID := STRING\n");}
 ;
-asignacion_m: C_A lista_var C_C OP_ASIG C_A lista_exp C_C  {printf("\nRegla 14 : Asignacion Multiple Lista\n");}
+asignacion_m: C_A lista_var C_C OP_ASIG C_A lista_exp C_C  {$$ = newNode("Asig_M",$2,$6); printf("\nRegla 14 : Asignacion Multiple Lista\n");}
 ;
-lista_var: lista_var COMA ID    {if(flagDeclaration == 0){validateIdDeclaration($3); insertIdentifier($3);} printf("\nRegla 15 : Lista, ID\n");}
-    |   ID                      {if(flagDeclaration == 0){validateIdDeclaration($1); insertIdentifier($1);} printf("\nRegla 16 : Lista ID\n");}
+lista_var: lista_var COMA ID    {if(flagDeclaration == 0){validateIdDeclaration($3); insertIdentifier($3);} $$ = newNode("L_Var",$1,newLeaf($3)); printf("\nRegla 15 : Lista, ID\n");}
+    |   ID                      {if(flagDeclaration == 0){validateIdDeclaration($1); insertIdentifier($1);} $$ = newLeaf($1); printf("\nRegla 16 : Lista ID\n");}
 ;
-lista_exp: lista_exp COMA tipo_exp   {printf("\nRegla 17 : Lista_EXP, Expresion\n");}
-    |   tipo_exp {printf("\nRegla 18 : tipo_exp\n");}  
+lista_exp: lista_exp COMA tipo_exp   {$$ = newNode("L_Exp", $1, $3); printf("\nRegla 17 : Lista_EXP, Expresion\n");}
+    |   tipo_exp {$$ = $1; printf("\nRegla 18 : tipo_exp\n");}  
 ;
-tipo_exp: expresion {printf("\nRegla 19 : Expresion\n");}
-    |   CTE_STRING {printf("\nRegla 20 : String\n");}
+tipo_exp: expresion {$$ = $1; printf("\nRegla 19 : Expresion\n");}
+    |   CTE_STRING {newLeaf(getSymbolName(&($1),3)); printf("\nRegla 20 : String\n");}
 ;
-decision: IF P_A condiciones P_C L_A cuerpo_programa L_C ELSE L_A cuerpo_programa L_C   {printf("\nRegla 21 : Decision con Else\n");}
-    |   IF P_A condiciones P_C L_A cuerpo_programa L_C {printf("\nRegla 22 : Decision\n");}
+decision: IF P_A condiciones P_C L_A cuerpo_programa L_C ELSE L_A cuerpo_programa L_C   {$$ = newNode("IF", $3, newNode("CUERPO_IF",$6,$10)); printf("\nRegla 21 : Decision con Else\n");}
+    |   IF P_A condiciones P_C L_A cuerpo_programa L_C {$$ = newNode("IF", $3, $6); printf("\nRegla 22 : Decision\n");}
 ;
-condiciones: condicion AND condicion {printf("\nRegla 23 : cond AND cond\n");}
-    |   condicion OR condicion  {printf("\nRegla 24 : cond OR cond\n");}
-    |   NOT P_A condicion P_C {printf("\nRegla 25 : NOT cond\n");}
-    |   condicion {printf("\nRegla 26 : Condicion\n");}
+condiciones: condicion AND condicion {$$ = newNode("AND", $1, $3); printf("\nRegla 23 : cond AND cond\n");}
+    |   condicion OR condicion  {$$ = newNode("OR", $1, $3); printf("\nRegla 24 : cond OR cond\n");}
+    |   NOT P_A condicion P_C {$$ = newNode("NOT", $3, NULL); printf("\nRegla 25 : NOT cond\n");}
+    |   condicion {$$ = $1; printf("\nRegla 26 : Condicion\n");}
 ;
-condicion: ID operador_logico factor    {printf("\nRegla 27 : ID Operador Logico Comparado\n");}
+condicion: ID operador_logico factor    {$$ = newNode($2,newLeaf($1),$3); printf("\nRegla 27 : ID Operador Logico Comparado\n");}
 ;
-operador_logico: OP_MAX {printf("\nRegla 28 : >\n");}
-    |   OP_MIN  {printf("\nRegla 29 : <\n");}
-    |   OP_MINEQ {printf("\nRegla 30 : <=\n");}
-    |   OP_MAXEQ {printf("\nRegla 31 : >=\n");}
-    |   OP_EQ {printf("\nRegla 32 : ==\n");}
-    |   OP_NEQ {printf("\nRegla 33 : !=\n");}
+operador_logico: OP_MAX {$$ = ">"; printf("\nRegla 28 : >\n");}
+    |   OP_MIN  {$$ = "<"; printf("\nRegla 29 : <\n");}
+    |   OP_MINEQ {$$ = "<="; printf("\nRegla 30 : <=\n");}
+    |   OP_MAXEQ {$$ = ">="; printf("\nRegla 31 : >=\n");}
+    |   OP_EQ {$$ = "=="; printf("\nRegla 32 : ==\n");}
+    |   OP_NEQ {$$ = "!="; printf("\nRegla 33 : !=\n");}
 ;
-iteracion: REPEAT cuerpo_programa UNTIL condiciones     {printf("\nRegla 34 : Repeat\n");}
-    |   REPEAT cuerpo_programa UNTIL NOT condicion    {printf("\nRegla 35 : Repeat con NOT\n");}
+iteracion: REPEAT cuerpo_programa UNTIL condiciones     {$$ = newNode("REPEAT",newNode("UNTIL",$4,NULL),$2);printf("\nRegla 34 : Repeat\n");}
+    |   REPEAT cuerpo_programa UNTIL NOT condicion    {$$ = newNode("REPEAT",newNode("UNTIL",newNode("NOT",$5,NULL),NULL),$2);printf("\nRegla 35 : Repeat con NOT\n");}
 ;
-printear: PRINT CTE_STRING      {printf("\nRegla 36 : Print String\n");}
-    |   PRINT ID                {printf("\nRegla 37 : Print ID\n");}
+printear: PRINT CTE_STRING      {$$ = newNode("READ",newLeaf(getSymbolName(&($2),3)),NULL);printf("\nRegla 36 : Print String\n");}
+    |   PRINT ID                {$$ = newNode("PRINT",newLeaf($2),NULL); printf("\nRegla 37 : Print ID\n");}
 ;
-obtain: READ ID {printf("\nRegla 38 : Read Variable\n");}
+obtain: READ ID {$$ = newNode("READ",newLeaf($2),NULL); printf("\nRegla 38 : Read Variable\n");}
 ;
-cteNombre: CONST ID OP_ASIG CTE_ENT     {putConstOnSymbolTable($2, "", $4, 0, "CONST_ENT", 1); printf("\nRegla 39 : Cte Con Nombre Entero\n");}
-    |   CONST ID OP_ASIG  CTE_STRING    {putConstOnSymbolTable($2, $4, 0, 0, "CONST_STRING", 2); printf("\nRegla 40 : Cte Con Nombre String\n");}
-    |   CONST ID OP_ASIG  CTE_REAL    {putConstOnSymbolTable($2, "", 0, $4, "CONST_FLOAT", 3); printf("\nRegla 41 : Cte Con Nombre Float\n");}
+cteNombre: CONST constExp {$$ = $2; printf("\n Regla 38* CONST constExp");}
 ;
-expresion: expresion OP_SUMA termino    {printf("\nRegla 42 : E + T\n");} 
-    |   expresion OP_RESTA termino      {printf("\nRegla 43 : E - T\n");} 
-    |   termino 
+constExp: ID OP_ASIG CTE_ENT     {putConstOnSymbolTable($1, "", $3, 0, "CONST_ENT", 1); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName(&($3),1))); printf("\nRegla 39 : Cte Con Nombre Entero\n");}
+    |   ID OP_ASIG  CTE_STRING    {putConstOnSymbolTable($1, $3, 0, 0, "CONST_STRING", 2); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName(&($3),3))); printf("\nRegla 40 : Cte Con Nombre String\n");}
+    |   ID OP_ASIG  CTE_REAL    {putConstOnSymbolTable($1, "", 0, $3, "CONST_FLOAT", 3); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName(&($3),2))); printf("\nRegla 41 : Cte Con Nombre Float\n");}
 ;
-termino: termino OP_MULT factor     {printf("\nRegla 44 : T * F\n");}
-    |   termino OP_DIV factor       {printf("\nRegla 45 : T / F\n");}
-    |   factor 
+expresion: expresion OP_SUMA termino    {$$ = newNode("+",$1,$3); printf("\nRegla 42 : E + T\n");} 
+    |   expresion OP_RESTA termino      {$$ = newNode("-",$1,$3); printf("\nRegla 43 : E - T\n");} 
+    |   termino {$$ = $1;}
 ;
-factor: ID                  {printf("\nRegla 46 : ID\n");}
-    |   CTE_ENT             {printf("\nRegla 47 : Entero\n");}
-    |   CTE_REAL            {printf("\nRegla 48 : Real\n");}
-    |   P_A expresion P_C   {printf("\nRegla 49 : (E)\n");}
+termino: termino OP_MULT factor     {$$ = newNode("*",$1,$3); printf("\nRegla 44 : T * F\n");}
+    |   termino OP_DIV factor       {$$ = newNode("/",$1,$3); printf("\nRegla 45 : T / F\n");}
+    |   factor {$$ = $1;}
+;
+factor: ID                  {$$ = newLeaf($1); printf("\nRegla 46 : ID\n");}
+    |   CTE_ENT             {$$ = newLeaf(getSymbolName(&($1),1)); printf("\nRegla 47 : Entero\n");}
+    |   CTE_REAL            {$$ = newLeaf(getSymbolName(&($1),2)); printf("\nRegla 48 : Real\n");}
+    |   P_A expresion P_C   {$$ = $2; printf("\nRegla 49 : (E)\n");}
 ;
 definiciones_variables: VAR definicion_variables ENDVAR {printf("\nRegla 50 : VAR def_Var ENDVAR\n");}
 ;
@@ -205,6 +212,8 @@ int main(int argc,char *argv[]){
                 yyparse();
             } while(!feof(yyin));
         saveTable();
+        ast treeCopy = *tree;
+        printAST(tree);
     }
     fclose(yyin);
     return 0;
