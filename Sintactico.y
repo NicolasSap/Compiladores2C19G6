@@ -105,7 +105,7 @@ ast* tree;
 %union {
   int integer_value;
   float float_value;
-  char string_value[30];
+  char string_value[33];
   struct treeNode* ast;
   char* auxLogicOperator;
 }
@@ -130,7 +130,7 @@ sentencia: asignacion_s     {$$ = $1; printf("\nRegla 5 : Asignacion Simple\n");
     |   cteNombre           {$$ = $1; printf("\nRegla 11 : Constante Nombre\n");}
 ;
 asignacion_s: ID OP_ASIG expresion  {$$ = newNode(":=",newLeaf($1),$3); printf("\nRegla 12 : Asig Simple ID := EXPRESION\n");}
-    |   ID OP_ASIG CTE_STRING       {$$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName(&($3),3))); printf("\nRegla 13 : Asig Simple ID := STRING\n");}
+    |   ID OP_ASIG CTE_STRING       {$$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName($3,3))); printf("\nRegla 13 : Asig Simple ID := STRING\n");}
 ;
 asignacion_m: C_A lista_var C_C OP_ASIG C_A lista_exp C_C  {$$ = newNode("Asig_M",$2,$6); printf("\nRegla 14 : Asignacion Multiple Lista\n");}
 ;
@@ -141,7 +141,7 @@ lista_exp: lista_exp COMA tipo_exp   {$$ = newNode("L_Exp", $1, $3); printf("\nR
     |   tipo_exp {$$ = $1; printf("\nRegla 18 : tipo_exp\n");}  
 ;
 tipo_exp: expresion {$$ = $1; printf("\nRegla 19 : Expresion\n");}
-    |   CTE_STRING {newLeaf(getSymbolName(&($1),3)); printf("\nRegla 20 : String\n");}
+    |   CTE_STRING {newLeaf(getSymbolName($1,3)); printf("\nRegla 20 : String\n");}
 ;
 decision: IF P_A condiciones P_C L_A cuerpo_programa L_C ELSE L_A cuerpo_programa L_C   {$$ = newNode("IF", $3, newNode("CUERPO_IF",$6,$10)); printf("\nRegla 21 : Decision con Else\n");}
     |   IF P_A condiciones P_C L_A cuerpo_programa L_C {$$ = newNode("IF", $3, $6); printf("\nRegla 22 : Decision\n");}
@@ -163,15 +163,15 @@ operador_logico: OP_MAX {$$ = ">"; printf("\nRegla 28 : >\n");}
 iteracion: REPEAT cuerpo_programa UNTIL condiciones     {$$ = newNode("REPEAT",newNode("UNTIL",$4,NULL),$2);printf("\nRegla 34 : Repeat\n");}
     |   REPEAT cuerpo_programa UNTIL NOT condicion    {$$ = newNode("REPEAT",newNode("UNTIL",newNode("NOT",$5,NULL),NULL),$2);printf("\nRegla 35 : Repeat con NOT\n");}
 ;
-printear: PRINT CTE_STRING      {$$ = newNode("READ",newLeaf(getSymbolName(&($2),3)),NULL);printf("\nRegla 36 : Print String\n");}
+printear: PRINT CTE_STRING      {$$ = newNode("READ",newLeaf(getSymbolName($2,3)),NULL);printf("\nRegla 36 : Print String\n");}
     |   PRINT ID                {$$ = newNode("PRINT",newLeaf($2),NULL); printf("\nRegla 37 : Print ID\n");}
 ;
 obtain: READ ID {$$ = newNode("READ",newLeaf($2),NULL); printf("\nRegla 38 : Read Variable\n");}
 ;
-cteNombre: CONST constExp {$$ = $2; printf("\n Regla 38* CONST constExp");}
+cteNombre: CONST constExp {$$ = $2; printf("\nRegla 38* CONST constExp\n");}
 ;
 constExp: ID OP_ASIG CTE_ENT     {putConstOnSymbolTable($1, "", $3, 0, "CONST_ENT", 1); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName(&($3),1))); printf("\nRegla 39 : Cte Con Nombre Entero\n");}
-    |   ID OP_ASIG  CTE_STRING    {putConstOnSymbolTable($1, $3, 0, 0, "CONST_STRING", 2); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName(&($3),3))); printf("\nRegla 40 : Cte Con Nombre String\n");}
+    |   ID OP_ASIG  CTE_STRING    {putConstOnSymbolTable($1, $3, 0, 0, "CONST_STRING", 2); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName($3,3))); printf("\nRegla 40 : Cte Con Nombre String\n");}
     |   ID OP_ASIG  CTE_REAL    {putConstOnSymbolTable($1, "", 0, $3, "CONST_FLOAT", 3); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName(&($3),2))); printf("\nRegla 41 : Cte Con Nombre Float\n");}
 ;
 expresion: expresion OP_SUMA termino    {$$ = newNode("+",$1,$3); printf("\nRegla 42 : E + T\n");} 
@@ -213,7 +213,7 @@ int main(int argc,char *argv[]){
             } while(!feof(yyin));
         saveTable();
         ast treeCopy = *tree;
-        printAST(tree);
+        printAndSaveAST(tree);
     }
     fclose(yyin);
     return 0;

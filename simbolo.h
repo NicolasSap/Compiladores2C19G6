@@ -290,6 +290,7 @@ char* getSymbolName(void *symbolPointer, int type) {
             itoa(integerValue, symbol, 10);
             break;
         case 2:
+            printf("%.37f",*(float*)symbolPointer);
             floatValue = *(float*)symbolPointer;
             gcvt (floatValue, 7, symbol);
             break; 

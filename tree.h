@@ -45,7 +45,7 @@ void printAST(ast* tree) {
      printAST(tree->left); 
   
      /* then print the data of node */
-     printf("%s ", tree->value);
+     //printf("%s ", tree->value);
      fprintf(file, "%s ", tree->value);
   
      /* now recur on right child */
