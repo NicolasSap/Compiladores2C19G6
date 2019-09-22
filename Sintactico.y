@@ -143,8 +143,8 @@ decision: IF P_A condiciones P_C L_A cuerpo_programa L_C ELSE L_A cuerpo_program
 ;
 condiciones: condicion AND condicion {printf("\nRegla 23 : cond AND cond\n");}
     |   condicion OR condicion  {printf("\nRegla 24 : cond OR cond\n");}
-    |   NOT condicion {printf("\nRegla 25 : NOT cond\n");}
-    |   condicion {printf("\nRegla 26 : Condicion\n");} 
+    |   NOT P_A condicion P_C {printf("\nRegla 25 : NOT cond\n");}
+    |   condicion {printf("\nRegla 26 : Condicion\n");}
 ;
 condicion: ID operador_logico factor    {printf("\nRegla 27 : ID Operador Logico Comparado\n");}
 ;
@@ -156,7 +156,7 @@ operador_logico: OP_MAX {printf("\nRegla 28 : >\n");}
     |   OP_NEQ {printf("\nRegla 33 : !=\n");}
 ;
 iteracion: REPEAT cuerpo_programa UNTIL condiciones     {printf("\nRegla 34 : Repeat\n");}
-    |   REPEAT cuerpo_programa UNTIL NOT condiciones    {printf("\nRegla 35 : Repeat con NOT\n");}
+    |   REPEAT cuerpo_programa UNTIL NOT condicion    {printf("\nRegla 35 : Repeat con NOT\n");}
 ;
 printear: PRINT CTE_STRING      {printf("\nRegla 36 : Print String\n");}
     |   PRINT ID                {printf("\nRegla 37 : Print ID\n");}
