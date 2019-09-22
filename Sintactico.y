@@ -141,7 +141,7 @@ lista_exp: lista_exp COMA tipo_exp   {$$ = newNode("L_Exp", $1, $3); printf("\nR
     |   tipo_exp {$$ = $1; printf("\nRegla 18 : tipo_exp\n");}  
 ;
 tipo_exp: expresion {$$ = $1; printf("\nRegla 19 : Expresion\n");}
-    |   CTE_STRING {newLeaf(getSymbolName($1,3)); printf("\nRegla 20 : String\n");}
+    |   CTE_STRING {$$ = newLeaf(getSymbolName($1,3)); printf("\nRegla 20 : String\n");}
 ;
 decision: IF P_A condiciones P_C L_A cuerpo_programa L_C ELSE L_A cuerpo_programa L_C   {$$ = newNode("IF", $3, newNode("CUERPO_IF",$6,$10)); printf("\nRegla 21 : Decision con Else\n");}
     |   IF P_A condiciones P_C L_A cuerpo_programa L_C {$$ = newNode("IF", $3, $6); printf("\nRegla 22 : Decision\n");}
@@ -213,7 +213,7 @@ int main(int argc,char *argv[]){
             } while(!feof(yyin));
         saveTable();
         ast treeCopy = *tree;
-        printAndSaveAST(tree);
+        printAST(tree);
     }
     fclose(yyin);
     return 0;
