@@ -1,39 +1,42 @@
 VAR
-	[INT,INT,INT,STRING,FLOAT]:[a,c,d,pepe,q]
+	[INT,INT,INT,STRING,FLOAT]:[a,b,c,d,e]
+	[INT, STRING]:[f,g]
 ENDVAR
 
-a := (((8 + c) - d) / 3 * 5)
-pepe := "asd"
-q := 31.33
+a := (((8 + b) - c) / 3 * 5)
+d := "asd"
+e := 31.33
 
-IF(a < c && q == 31.33) {
-	IF (c > d) {
+IF(a < b && e == 31.33) {
+	IF (b > c) {
 		REPEAT
 			a:=a+1
 			REPEAT
-				d:=d+1
-			UNTIL d == 0
-		UNTIL a == c
+				c:=c+1
+			UNTIL c == 0
+		UNTIL a == b
 	}
 }
 
-IF ( ! (a != c)) {
-	pepe := "pepe"
+IF ( ! (a != b)) {
+	d := "pepe"
+} ELSE {
+	d := "papa"
 }
 
-IF ( a >= c || a <= d) {
-	pepe := "pepe1"
+IF ( a >= b || a <= c) {
+	d := "pepe1"
 }
 
 a := 65535
-pepe := "123456789012345678901234567890"
-q := 3.402823
+d := "123456789012345678901234567890"
+e := 3.402823
 
-PRINT pepe
+PRINT d
 PRINT "asd"
 READ a
 
-[a,pepe,d,q] := [1,"hola",a,1.33]
+[a,d,c,e] := [1,"hola",a,1.33]
 
 CONST z := 30
-CONST x := "asd"
+CONST y := "asd"
