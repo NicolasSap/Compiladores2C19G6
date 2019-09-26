@@ -13,6 +13,7 @@ void validateIdDeclaration();
 char* seen[200];
 int seenIndex = 0;
 
+int flagAsigM = 0;
 int flagDeclaration = 0;
 
 int yystopparser=0;
@@ -132,16 +133,16 @@ sentencia: asignacion_s     {$$ = $1; printf("\nRegla 5 : Asignacion Simple\n");
 asignacion_s: ID OP_ASIG expresion  {$$ = newNode(":=",newLeaf($1),$3); printf("\nRegla 12 : Asig Simple ID := EXPRESION\n");}
     |   ID OP_ASIG CTE_STRING       {$$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName($3,3))); printf("\nRegla 13 : Asig Simple ID := STRING\n");}
 ;
-asignacion_m: C_A lista_var C_C OP_ASIG C_A lista_exp C_C  {$$ = newNode("Asig_M",$2,$6); printf("\nRegla 14 : Asignacion Multiple Lista\n");}
+asignacion_m: C_A {flagAsigM = 1;} lista_var C_C OP_ASIG C_A lista_exp C_C  {flagAsigM =0; $$ = incrustarArbol(); clearAsigMList(); printf("\nRegla 14 : Asignacion Multiple Lista\n");}
 ;
-lista_var: lista_var COMA ID    {if(flagDeclaration == 0){validateIdDeclaration($3); insertIdentifier($3);} $$ = newNode("L_Var",$1,newLeaf($3)); printf("\nRegla 15 : Lista, ID\n");}
-    |   ID                      {if(flagDeclaration == 0){validateIdDeclaration($1); insertIdentifier($1);} $$ = newLeaf($1); printf("\nRegla 16 : Lista ID\n");}
+lista_var: lista_var COMA ID    {if(flagDeclaration == 0){validateIdDeclaration($3); insertIdentifier($3);} if(flagAsigM == 1){insertAsigM($3,1,0,0,0);} printf("\nRegla 15 : Lista, ID\n");}
+    |   ID                      {if(flagDeclaration == 0){validateIdDeclaration($1); insertIdentifier($1);} if(flagAsigM == 1){insertAsigM($1,1,0,0,0);} printf("\nRegla 16 : Lista ID\n");}
 ;
-lista_exp: lista_exp COMA tipo_exp   {$$ = newNode("L_Exp", $1, $3); printf("\nRegla 17 : Lista_EXP, Expresion\n");}
-    |   tipo_exp {$$ = $1; printf("\nRegla 18 : tipo_exp\n");}  
+lista_exp: lista_exp COMA tipo_exp   {printf("\nRegla 17 : Lista_EXP, Expresion\n");}
+    |   tipo_exp {printf("\nRegla 18 : tipo_exp\n");}  
 ;
-tipo_exp: expresion {$$ = $1; printf("\nRegla 19 : Expresion\n");}
-    |   CTE_STRING {$$ = newLeaf(getSymbolName($1,3)); printf("\nRegla 20 : String\n");}
+tipo_exp: expresion {printf("\nRegla 19 : Expresion\n");}
+    |   CTE_STRING {insertAsigM($1,2,0,0,1); printf("\nRegla 20 : String\n");}
 ;
 decision: IF P_A condiciones P_C L_A cuerpo_programa L_C ELSE L_A cuerpo_programa L_C   {$$ = newNode("IF", $3, newNode("CUERPO_IF",$6,$10)); printf("\nRegla 21 : Decision con Else\n");}
     |   IF P_A condiciones P_C L_A cuerpo_programa L_C {$$ = newNode("IF", $3, $6); printf("\nRegla 22 : Decision\n");}
@@ -182,9 +183,9 @@ termino: termino OP_MULT factor     {$$ = newNode("*",$1,$3); printf("\nRegla 44
     |   termino OP_DIV factor       {$$ = newNode("/",$1,$3); printf("\nRegla 45 : T / F\n");}
     |   factor {$$ = $1;}
 ;
-factor: ID                  {$$ = newLeaf($1); printf("\nRegla 46 : ID\n");}
-    |   CTE_ENT             {$$ = newLeaf(getSymbolName(&($1),1)); printf("\nRegla 47 : Entero\n");}
-    |   CTE_REAL            {$$ = newLeaf(getSymbolName(&($1),2)); printf("\nRegla 48 : Real\n");}
+factor: ID                  {$$ = newLeaf($1); if(flagAsigM == 1){insertAsigM($1,2,0,0,1);} printf("\nRegla 46 : ID\n");}
+    |   CTE_ENT             {$$ = newLeaf(getSymbolName(&($1),1)); if(flagAsigM == 1){insertAsigM("",2,0,$1,2);} printf("\nRegla 47 : Entero\n");}
+    |   CTE_REAL            {$$ = newLeaf(getSymbolName(&($1),2)); if(flagAsigM == 1){insertAsigM("",2,$1,0,3);} printf("\nRegla 48 : Real\n");}
     |   P_A expresion P_C   {$$ = $2; printf("\nRegla 49 : (E)\n");}
 ;
 definiciones_variables: VAR definicion_variables ENDVAR {printf("\nRegla 50 : VAR def_Var ENDVAR\n");}
@@ -213,7 +214,7 @@ int main(int argc,char *argv[]){
             } while(!feof(yyin));
         saveTable();
         ast treeCopy = *tree;
-        printAST(tree);
+        printAndSaveAST(tree);
     }
     fclose(yyin);
     return 0;
