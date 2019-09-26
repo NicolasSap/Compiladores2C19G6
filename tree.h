@@ -117,7 +117,6 @@ ast* incrustarArbol() {
     char* symbolAsig = ":=";
     ast* asigT;
     int i;
-    printAsigM(asigMList);
     asigSymbol* aux = reverseList();
     i = length();
     for ( i; i>0; i--){
@@ -125,7 +124,6 @@ ast* incrustarArbol() {
         deleteLastNode();
         aux = reverseList();
     }
-    printM();
     return finishAsig();
 }
 
