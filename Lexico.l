@@ -11,6 +11,7 @@ FILE  *yyin;
 void checkearLimitesConstanteString();
 void checkearLimitesConstanteFloat();
 void checkearLimitesConstanteInteger();
+void validarComentarios();
 
 %}
 
@@ -66,16 +67,40 @@ BLANK       [" "]
 "READ"		{ return READ;}
 "CONST"		{ return CONST;}
 {ID}			{ strcpy(yylval.string_value, yytext); insert(yytext); return ID;}
-{COMMENT}             
-{CTE_STRING}	{ checkearLimitesConstanteString(); strcpy(yylval.string_value, yytext); insert(yytext); return CTE_STRING;}
-{CTE_ENT}		{ checkearLimitesConstanteInteger(); yylval.integer_value = atoi(yytext); insert(yytext); return CTE_ENT;}
-{CTE_REAL}		{ checkearLimitesConstanteFloat(); yylval.float_value = atof(yytext); insert(yytext); return CTE_REAL;}
+{COMMENT} { validarComentarios();}
+{CTE_STRING}	{ checkearLimitesConstanteString();   strcpy(yylval.string_value, yytext);  insert(yytext); return CTE_STRING;}
+{CTE_ENT}		  { checkearLimitesConstanteInteger();  yylval.integer_value = atoi(yytext);  insert(yytext); return CTE_ENT;}
+{CTE_REAL}		{ checkearLimitesConstanteFloat();    yylval.float_value = atof(yytext);    insert(yytext); return CTE_REAL;}
 "BLANK"
 "\n"
 "\t"
 "\r\n"
 
 %%
+
+
+void validarComentarios() {
+  char * cadena = yytext;
+  cadena = cadena + 3;
+  int comentarioApertura = 0;
+  int i;
+  
+  for(i=0;  i < yyleng - 3; i ++){
+    if(*cadena == '-' && *(cadena+1) == '-' && *(cadena+2) == '/'){
+      if(comentarioApertura == 1){
+        printf("Syntax Error: Comentarios multinivel no permitidos %d\n", yylineno);
+        exit(1);
+      }
+      comentarioApertura = 1;
+    }
+
+    if(*cadena == '/' && *(cadena+1) == '-' && *(cadena+2) == '-'){
+      comentarioApertura = 0;
+    }
+
+    cadena ++;
+  }
+}
 
 void checkearLimitesConstanteString() {
   if (yyleng > 32) {
