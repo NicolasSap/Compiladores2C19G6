@@ -1,2 +1,6 @@
+VAR
+    [INT] : [a]
+ENDVAR
+
 --/ asdasdad--/ asda  --/ asdasd /-- sd := 2 /-- /--
 b := "asd"

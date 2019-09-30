@@ -1,3 +1,7 @@
+VAR
+    [INT] : [a]
+ENDVAR
+
 IF ( a > 4) {
     a := 1
 }

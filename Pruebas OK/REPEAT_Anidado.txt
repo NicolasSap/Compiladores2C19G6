@@ -1,8 +1,13 @@
+VAR
+    [INT] : [z]
+ENDVAR
+
+
 REPEAT 
     REPEAT 
     a := 2 
     b := 1
-    UNTIL ! a == 2 && b == 1 
+    UNTIL ! (a == 2)
     a := 2 
     b := 1
-UNTIL ! a == 2 && b == 1 
+UNTIL ! (a == 2)

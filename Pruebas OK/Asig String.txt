@@ -1,2 +1,6 @@
-b := "asdasda"
+VAR
+    [INT, FLOAT] : [a, b]
+ENDVAR
+CONST z := "as"
+a := b
 

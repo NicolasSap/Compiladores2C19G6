@@ -1,2 +1,6 @@
+VAR
+    [INT] : [a]
+ENDVAR
+
 PRINT pepe
 PRINT "asd_1"

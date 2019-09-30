@@ -1,1 +1,5 @@
+VAR
+    [INT] : [b]
+ENDVAR
+
 a := .99

@@ -9,6 +9,7 @@
 void validateAsignation();
 void validateType();
 void validateIdDeclaration();
+void validateAsignationString();
 
 char* seen[200];
 int seenIndex = 0;
@@ -130,8 +131,8 @@ sentencia: asignacion_s     {$$ = $1; printf("\nRegla 5 : Asignacion Simple\n");
     |   obtain              {$$ = $1; printf("\nRegla 10 : READ\n");}
     |   cteNombre           {$$ = $1; printf("\nRegla 11 : Constante Nombre\n");}
 ;
-asignacion_s: ID OP_ASIG expresion  {$$ = newNode(":=",newLeaf($1),$3); printf("\nRegla 12 : Asig Simple ID := EXPRESION\n");}
-    |   ID OP_ASIG CTE_STRING       {$$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName($3,3))); printf("\nRegla 13 : Asig Simple ID := STRING\n");}
+asignacion_s: ID OP_ASIG expresion  {validateAsignation($1,$3); $$ = newNode(":=",newLeaf($1),$3); printf("\nRegla 12 : Asig Simple ID := EXPRESION\n");}
+    |   ID OP_ASIG CTE_STRING       {validateAsignationString($1); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName($3,3))); printf("\nRegla 13 : Asig Simple ID := STRING\n");}
 ;
 asignacion_m: C_A {flagAsigM = 1;} lista_var C_C OP_ASIG C_A lista_exp C_C  {flagAsigM =0; $$ = incrustarArbol(); clearAsigMList(); printf("\nRegla 14 : Asignacion Multiple Lista\n");}
 ;
@@ -162,14 +163,13 @@ operador_logico: OP_MAX {$$ = ">"; printf("\nRegla 28 : >\n");}
     |   OP_NEQ {$$ = "!="; printf("\nRegla 33 : !=\n");}
 ;
 iteracion: REPEAT cuerpo_programa UNTIL condiciones     {$$ = newNode("REPEAT",newNode("UNTIL",$4,NULL),$2);printf("\nRegla 34 : Repeat\n");}
-    |   REPEAT cuerpo_programa UNTIL NOT condicion    {$$ = newNode("REPEAT",newNode("UNTIL",newNode("NOT",$5,NULL),NULL),$2);printf("\nRegla 35 : Repeat con NOT\n");}
 ;
 printear: PRINT CTE_STRING      {$$ = newNode("READ",newLeaf(getSymbolName($2,3)),NULL);printf("\nRegla 36 : Print String\n");}
     |   PRINT ID                {$$ = newNode("PRINT",newLeaf($2),NULL); printf("\nRegla 37 : Print ID\n");}
 ;
 obtain: READ ID {$$ = newNode("READ",newLeaf($2),NULL); printf("\nRegla 38 : Read Variable\n");}
 ;
-cteNombre: CONST constExp {$$ = $2; printf("\nRegla 38* CONST constExp\n");}
+cteNombre: CONST constExp {$$ = $2; printf("\nRegla 38' CONST constExp\n");}
 ;
 constExp: ID OP_ASIG CTE_ENT     {putConstOnSymbolTable($1, "", $3, 0, "CONST_ENT", 1); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName(&($3),1))); printf("\nRegla 39 : Cte Con Nombre Entero\n");}
     |   ID OP_ASIG  CTE_STRING    {putConstOnSymbolTable($1, $3, 0, 0, "CONST_STRING", 2); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName($3,3))); printf("\nRegla 40 : Cte Con Nombre String\n");}
@@ -221,7 +221,7 @@ int main(int argc,char *argv[]){
 }
 
 int yyerror(void) {
-    printf("\n[!] Syntax Error on line %d\n\n", yylineno);
+    printf("\n[!] Syntax Error - line %d\n\n", yylineno);
 	system ("Pause");
 	exit (1);
 }
@@ -230,7 +230,7 @@ void validateIdDeclaration(char* id) {
     int i = 0;
     for(i = 0; i < seenIndex; i++) {
         if(strcmp(seen[i], id) == 0) {
-            fprintf(stderr, "\n Identificator already declared, line: %d\n", yylineno);
+            fprintf(stderr, "\n [!] Identifier invalid: '%s' it has been already declared in the line: %d\n",id, yylineno);
             exit(1);
         }
     }
@@ -238,32 +238,30 @@ void validateIdDeclaration(char* id) {
     seenIndex++;
 }
 
-/*
-
-ID OP_ASIG expresion  {validateAsignation($1, $3); printf("\nRegla 18 : Asig Simple ID := EXPRESION\n");}
-
 void validateAsignation(char* id, ast* exp) {
-    printf("Entre a verficar la asignacion\n\n");
     symbolNode* symbol = findSymbol(id);
-    printf("ROMPI ACA\n\n");
     symbolNode* treeValue = findSymbol(exp->value);
-    printf("Entrando IF\n\n");
     if (symbol != NULL && treeValue != NULL) {
-        printf("IF 1\n\n");
-        if((strcmp(symbol->type, "INT") == 0 || strcmp(symbol->type, "FLOAT") == 0) && (strcmp(treeValue->type, "STRING") == 0 || strcmp(treeValue->type, "STRING_C") == 0 )) {
-            printf("ADENTRO IF 1\n\n");
+        if((strcmp(symbol->type, "INT") == 0 || strcmp(symbol->type, "FLOAT") == 0) && (strcmp(treeValue->type, "STRING") == 0 || strcmp(treeValue->type, "CONST_STRING") == 0 )) {
             fprintf(stderr, "\n Incompatible assignment, line: %d\n", yylineno);
             exit(1);
         }
-        printf("IF 2\n\n");
-        if((strcmp(symbol->type, "STRING") == 0) && (strcmp(treeValue->type, "INT") == 0 || strcmp(treeValue->type, "FLOAT") == 0  || strcmp(treeValue->type, "INTEGER_C") == 0 || strcmp(treeValue->type, "FLOAT_C") == 0 )) {
-            printf("ADENTRO IF 2\n\n");
+        if((strcmp(symbol->type, "STRING") == 0) && (strcmp(treeValue->type, "INTEGER_CTE") == 0 || strcmp(treeValue->type, "CTE_REAL") == 0  || strcmp(treeValue->type, "INTEGER_C") == 0 || strcmp(treeValue->type, "FLOAT_C") == 0 )) {
             fprintf(stderr, "\n Incompatible assignment, line: %d\n", yylineno);
             exit(1);
         }
     }
 }
-*/
+
+void validateAsignationString(char* id){
+    symbolNode* symbol = findSymbol(id);
+    if (strcmp(symbol->type, "STRING") != 0){
+        fprintf(stderr, "\n Incompatible assignment, line: %d\n", yylineno);
+        exit(1);
+    }
+}
+
+
 /*
 expresion OP_SUMA termino    {validateType($1, $3, 1); printf("\nRegla 47 : E + T\n");} 
 

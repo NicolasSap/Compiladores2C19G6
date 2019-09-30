@@ -1,3 +1,8 @@
+VAR
+    [INT] : [x]
+ENDVAR
+
+
 REPEAT 
     a := 2 
     b := 1

@@ -145,16 +145,19 @@ void deleteIfSizeDiff(identifierNode* list, identifierNode* list1) { // borra el
         cant1++;
         l1 = l1->next;
     }
-    if(cant > cant1) {
+    while(cant > cant1) {
         // antes deberia mandarlo a sacar a la lista de simbolos
         //borrar el primer id
         deleteFromTS(d->value);
         identifierList = identifierList->next;
         free(d);
-    }else if (cant < cant1){
+        cant --;
+    }
+    while (cant < cant1){
         // borrar el primer tipo dato
         identifierTypeList = identifierTypeList->next;
         free(d1);
+        cant1 --;
     }
 }
 

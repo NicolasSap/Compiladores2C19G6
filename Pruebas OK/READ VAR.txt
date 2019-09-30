@@ -1,1 +1,5 @@
+VAR
+    [INT] : [a]
+ENDVAR
+
 READ pepe

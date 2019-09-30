@@ -1,3 +1,7 @@
+VAR
+    [INT] : [q]
+ENDVAR
+
 REPEAT 
     a := 2 
     b := 1

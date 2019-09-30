@@ -1,2 +1,6 @@
+VAR
+    [INT] : [a]
+ENDVAR
+
 CONST pepe := 30
 CONST mal := "asd"

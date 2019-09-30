@@ -1,6 +1,7 @@
 VAR
-    [INT, STRING] : [a,b,c,asdasdas]
-    [INT] : [a]
-    [INT, FLOAT] : [a,b,c,asdasdas,asd,asd,asd,asd,as,d]
-    [FLOAT] : [a]
+    [INT, STRING] : [x,b,c,d]
+    [INT] : [z]
+    [INT, FLOAT, STRING, INT] : [q,p]
 ENDVAR
+
+CONST Q := "PEPEPE"
