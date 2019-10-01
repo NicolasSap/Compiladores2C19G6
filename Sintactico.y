@@ -169,11 +169,11 @@ printear: PRINT CTE_STRING      {$$ = newNode("READ",newLeaf(getSymbolName($2,3)
 ;
 obtain: READ ID {$$ = newNode("READ",newLeaf($2),NULL); printf("\nRegla 38 : Read Variable\n");}
 ;
-cteNombre: CONST constExp {$$ = $2; printf("\nRegla 38' CONST constExp\n");}
+cteNombre: CONST constExp {printf("\nRegla 38' CONST constExp\n");}
 ;
-constExp: ID OP_ASIG CTE_ENT     {putConstOnSymbolTable($1, "", $3, 0, "CONST_ENT", 1); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName(&($3),1))); printf("\nRegla 39 : Cte Con Nombre Entero\n");}
-    |   ID OP_ASIG  CTE_STRING    {putConstOnSymbolTable($1, $3, 0, 0, "CONST_STRING", 2); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName($3,3))); printf("\nRegla 40 : Cte Con Nombre String\n");}
-    |   ID OP_ASIG  CTE_REAL    {putConstOnSymbolTable($1, "", 0, $3, "CONST_FLOAT", 3); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName(&($3),2))); printf("\nRegla 41 : Cte Con Nombre Float\n");}
+constExp: ID OP_ASIG CTE_ENT     {validateIdDeclaration($1); putConstOnSymbolTable($1, "", $3, 0, "CONST_ENT", 1); printf("\nRegla 39 : Cte Con Nombre Entero\n");}
+    |   ID OP_ASIG  CTE_STRING    {validateIdDeclaration($1); putConstOnSymbolTable($1, $3, 0, 0, "CONST_STRING", 2); printf("\nRegla 40 : Cte Con Nombre String\n");}
+    |   ID OP_ASIG  CTE_REAL    {validateIdDeclaration($1); putConstOnSymbolTable($1, "", 0, $3, "CONST_FLOAT", 3); printf("\nRegla 41 : Cte Con Nombre Float\n");}
 ;
 expresion: expresion OP_SUMA termino    {$$ = newNode("+",$1,$3); printf("\nRegla 42 : E + T\n");} 
     |   expresion OP_RESTA termino      {$$ = newNode("-",$1,$3); printf("\nRegla 43 : E - T\n");} 
