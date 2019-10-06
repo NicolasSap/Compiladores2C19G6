@@ -2,7 +2,8 @@ VAR
 	[INT,INT,INT,STRING,FLOAT]:[a,b,c,d,e]
 	[INT, STRING]:[f,g]
 ENDVAR
-
+--/ COMENTARIO NIVEL 1 /--
+--/ COMENTARIO NIVEL 1 --/ COMENTARIO NIVEL 2 /-- /--
 a := (((8 + b) - c) / 3 * 5)
 d := "asd"
 e := 31.33
