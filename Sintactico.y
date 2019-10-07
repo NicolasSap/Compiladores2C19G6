@@ -129,7 +129,7 @@ sentencia: asignacion_s     {$$ = $1; printf("\nRegla 5 : Asignacion Simple\n");
     |   iteracion           {$$ = $1; printf("\nRegla 8 : Iteracion\n");}
     |   printear            {$$ = $1; printf("\nRegla 9 : Print\n");}
     |   obtain              {$$ = $1; printf("\nRegla 10 : READ\n");}
-    |   cteNombre           {$$ = $1; printf("\nRegla 11 : Constante Nombre\n");}
+    |   cteNombre           {$$ = NULL; printf("\nRegla 11 : Constante Nombre\n");}
 ;
 asignacion_s: ID OP_ASIG expresion  {validateAsignation($1,$3); $$ = newNode(":=",newLeaf($1),$3); printf("\nRegla 12 : Asig Simple ID := EXPRESION\n");}
     |   ID OP_ASIG CTE_STRING       {validateAsignationString($1); $$ = newNode(":=",newLeaf($1),newLeaf(getSymbolName($3,3))); printf("\nRegla 13 : Asig Simple ID := STRING\n");}
