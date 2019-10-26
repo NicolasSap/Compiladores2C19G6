@@ -10,6 +10,8 @@ void validateAsignation();
 void validateType();
 void validateIdDeclaration();
 void validateAsignationString();
+void validateCondition();
+char* changeType();
 
 char* seen[200];
 int seenIndex = 0;
@@ -153,7 +155,7 @@ condiciones: condicion AND condicion {$$ = newNode("AND", $1, $3); printf("\nReg
     |   NOT P_A condicion P_C {$$ = newNode("NOT", $3, NULL); printf("\nRegla 25 : NOT cond\n");}
     |   condicion {$$ = $1; printf("\nRegla 26 : Condicion\n");}
 ;
-condicion: ID operador_logico factor    {$$ = newNode($2,newLeaf($1),$3); printf("\nRegla 27 : ID Operador Logico Comparado\n");}
+condicion: ID operador_logico factor    {validateCondition($1,$3,1); $$ = newNode($2,newLeaf($1),$3); printf("\nRegla 27 : ID Operador Logico Comparado\n");}
 ;
 operador_logico: OP_MAX {$$ = ">"; printf("\nRegla 28 : >\n");}
     |   OP_MIN  {$$ = "<"; printf("\nRegla 29 : <\n");}
@@ -221,7 +223,7 @@ int main(int argc,char *argv[]){
 }
 
 int yyerror(void) {
-    printf("\n[!] Syntax Error - line %d\n\n", yylineno);
+    printf("\n[E] Syntax Error - line %d\n\n", yylineno);
 	system ("Pause");
 	exit (1);
 }
@@ -230,7 +232,7 @@ void validateIdDeclaration(char* id) {
     int i = 0;
     for(i = 0; i < seenIndex; i++) {
         if(strcmp(seen[i], id) == 0) {
-            fprintf(stderr, "\n [!] Identifier invalid: '%s' it has been already declared in the line: %d\n",id, yylineno);
+            fprintf(stderr, "\n[E] Identifier invalid: '%s' it has been already declared in the line: %d\n",id, yylineno);
             exit(1);
         }
     }
@@ -243,11 +245,11 @@ void validateAsignation(char* id, ast* exp) {
     symbolNode* treeValue = findSymbol(exp->value);
     if (symbol != NULL && treeValue != NULL) {
         if((strcmp(symbol->type, "INT") == 0 || strcmp(symbol->type, "FLOAT") == 0) && (strcmp(treeValue->type, "STRING") == 0 || strcmp(treeValue->type, "CONST_STRING") == 0 )) {
-            fprintf(stderr, "\n Incompatible assignment, line: %d\n", yylineno);
+            fprintf(stderr, "\n[E] Incompatible assignment, line: %d\n", yylineno);
             exit(1);
         }
         if((strcmp(symbol->type, "STRING") == 0) && (strcmp(treeValue->type, "INTEGER_CTE") == 0 || strcmp(treeValue->type, "CTE_REAL") == 0  || strcmp(treeValue->type, "INTEGER_C") == 0 || strcmp(treeValue->type, "FLOAT_C") == 0 )) {
-            fprintf(stderr, "\n Incompatible assignment, line: %d\n", yylineno);
+            fprintf(stderr, "\n[E] Incompatible assignment, line: %d\n", yylineno);
             exit(1);
         }
     }
@@ -256,12 +258,42 @@ void validateAsignation(char* id, ast* exp) {
 void validateAsignationString(char* id){
     symbolNode* symbol = findSymbol(id);
     if (strcmp(symbol->type, "STRING") != 0){
-        fprintf(stderr, "\n Incompatible assignment, line: %d\n", yylineno);
+        fprintf(stderr, "\n[E] Incompatible assignment, line: %d\n", yylineno);
         exit(1);
     }
 }
 
+void validateCondition(char* left, ast* right, int fail) {
+    if(right->value != NULL) {
+        symbolNode* symbolLeft = findSymbol(left);
+        symbolNode* symbolRight = findSymbol(right->value);
+        if(symbolRight != NULL && symbolLeft != NULL) {
+            if(fail == 1 && (
+                strcmp(symbolLeft->type, changeType(symbolRight->type)) != 0 ||
+                strcmp(symbolLeft->type, "STRING") == 0 ||
+                strcmp(changeType(symbolRight->type), "STRING") == 0)) {
+                fprintf(stderr, "\n[E] Different types in condition, line: %d\n", yylineno);
+                exit(1);
+            }
+        }
+    }
+}
 
+char* changeType(char* t) { 
+    char* value;
+    if(strcmp(t,"STRING") == 0 || strcmp(t,"INT") == 0 || strcmp(t,"FLOAT") == 0) {
+        value = t;
+    }else{
+        if(strcmp(t,"CTE_STRING") == 0 || strcmp(t,"STRING_CTE") == 0){
+            value = "STRING";
+        }else if(strcmp(t,"CTE_ENT") == 0 || strcmp(t,"INTEGER_CTE") == 0){
+            value = "INT";
+        }else if(strcmp(t,"CTE_REAL") == 0 || strcmp(t,"FLOAT_CTE") == 0){
+            value = "FLOAT";
+        }
+    } 
+    return value; 
+}
 /*
 expresion OP_SUMA termino    {validateType($1, $3, 1); printf("\nRegla 47 : E + T\n");} 
 
