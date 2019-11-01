@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h> 
-#include <stdio.h> 
+#include <ctype.h>
+#include <stdio.h>
 
 // Ast stands for Abstract Syntax Tree
 
@@ -24,6 +24,7 @@ typedef struct listAsig {
     struct listAsig* next;
 } asigSymbol;
 
+void generateAssembler();
 void printAndSaveAST();
 void printAST();
 ast* newNode();
@@ -68,7 +69,7 @@ char* searchValue(asigSymbol* a) {
         }
     } else {
         strcpy(s,a->v);
-    }  
+    }
     return strdup(s);
 }
 
@@ -100,7 +101,7 @@ void printM() {
     while (current != NULL) {
         printf("\n-----\n%s - %s - %s\n-----\n", current->tree->value, current->tree->left->value, current->tree->right->value);
         current = current->next;
-    } 
+    }
 }
 
 int length() {
@@ -109,7 +110,7 @@ int length() {
     while (aux != NULL) {
         cant++;
         aux = aux->next;
-    } 
+    }
     return cant;
 }
 
@@ -144,7 +145,7 @@ asigSymbol* reverseList() {
     while (aux != NULL) {
         ant = aux;
         aux = aux->next;
-    } 
+    }
     return ant;
 }
 
@@ -158,9 +159,9 @@ int cantAvanzar() {
                     cant++;
                 }
             }
-        }  
+        }
         aux = aux->next;
-    } 
+    }
     return cant-1;
 }
 
@@ -180,7 +181,7 @@ asigSymbol* insertAsigM(char* value, int choice, float f, int i, int t) {
         while (avanzar != 0) {
             aux = aux->next;
             avanzar--;
-        } 
+        }
         node = aux;
         if (t == 1){ //string
             int len;
@@ -215,7 +216,7 @@ void printAsigM(asigSymbol* a) {
     while(current != NULL){
         printf("%s - %s - %f - %d\n", current->name, current->v, current->f, current->i);
         current = current->next;
-    }   
+    }
 }
 
 ast* newNode(char* operation, ast* leftNode, ast* rightNode) {
@@ -229,28 +230,26 @@ ast* newNode(char* operation, ast* leftNode, ast* rightNode) {
 
 ast* newLeaf(char* value) {
     ast* node = (ast*) malloc(sizeof(ast));
-   
+
     node->value = strdup(value);
     node->left = NULL;
     node->right = NULL;
     return node;
 }
 
-void printAST(ast* tree) { 
-     if (tree == NULL) 
-          return; 
-  
-     /* first recur on left child */
-     printAST(tree->left); 
-  
-     /* then print the data of node */
-     //printf("%s ", tree->value);
-     fprintf(file, "%s ", tree->value);
-  
-     /* now recur on right child */
-     printAST(tree->right); 
-} 
+void printAST(ast* tree) {
+     if (tree == NULL)
+          return;
 
+     /* first recur on left child */
+     printAST(tree->left);
+
+     /* then print the data of node */
+     fprintf(file, "%s ", tree->value);
+
+     /* now recur on right child */
+     printAST(tree->right);
+}
 
 void printAndSaveAST(ast* tree) {
     ast* copy = tree;
@@ -263,4 +262,63 @@ void printAndSaveAST(ast* tree) {
 
     printAST(copy);
     fclose(file);
+}
+
+void padding ( char ch, int n ){
+  int i;
+
+  for ( i = 0; i < n; i++ )
+    putchar ( ch );
+}
+
+int generateCode(ast* root) {
+  if(
+    root->right != NULL
+    &&
+    root->left != NULL
+  ) {
+    if(
+      root->left->left == NULL && root->left->right == NULL
+      &&
+      root->right->left == NULL && root->right->right == NULL
+    ) {
+      printf("\t %s \n", root->value);
+      printf("%s \t\t %s \n", root->left->value, root->right->value);
+      printf("Se modifico el arbol en %s", root->value);
+
+      //aca habria que generar el codigo assembler
+      root->left->value = NULL;
+      root->left->left = NULL;
+      root->left->right = NULL;
+
+      root->right->value = NULL;
+      root->right->left = NULL;
+      root->right->right = NULL;
+      //modify treeNode
+      return 1;
+    }
+    return 0;
+  }
+  return 0;
+}
+
+void goThroughTree (ast *root) {
+  if ( root != NULL ) {
+    goThroughTree (root->right);
+    generateCode(root);
+    goThroughTree ( root->left);
+  }
+}
+
+generateAssembler(ast* tree) {
+  ast* copy = tree;
+  file = fopen("assembler-code.txt", "w");
+  if (file == NULL)
+  {
+      printf("Error opening file!\n");
+      exit(1);
+  }
+
+  goThroughTree(copy);
+  fclose(file);
 }

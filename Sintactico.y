@@ -26,7 +26,7 @@ ast* tree;
 %}
 
 %token  DIGITO
-%token  LETRA 
+%token  LETRA
 %token  CHAR_ESP
 %token  COMMENT
 %token  ID
@@ -116,11 +116,11 @@ ast* tree;
 
 %start  programa
 
-%% 
+%%
 programa: program   {$$ = $1; tree = $$; printf("\nRegla 00 : Compilacion Ok\n");}
 ;
-program: definiciones_variables cuerpo_programa   {$$ = $2; printf("\nRegla 1 : Definicion Variables + program\n");} 
-    |   definiciones_variables                  {printf("\nRegla 2 : Definicion Variables\n");} 
+program: definiciones_variables cuerpo_programa   {$$ = $2; printf("\nRegla 1 : Definicion Variables + program\n");}
+    |   definiciones_variables                  {printf("\nRegla 2 : Definicion Variables\n");}
 ;
 cuerpo_programa: cuerpo_programa sentencia {flagDeclaration = 1; $$ = newNode("Cuerpo_Programa",$1,$2); printf("\nRegla 3 : Program Sentencia\n");}
     |   sentencia {$$ = $1; printf("\nRegla 4 : Sentencia\n");}
@@ -142,7 +142,7 @@ lista_var: lista_var COMA ID    {if(flagDeclaration == 0){validateIdDeclaration(
     |   ID                      {if(flagDeclaration == 0){validateIdDeclaration($1); insertIdentifier($1);} if(flagAsigM == 1){insertAsigM($1,1,0,0,0);} printf("\nRegla 16 : Lista ID\n");}
 ;
 lista_exp: lista_exp COMA tipo_exp   {printf("\nRegla 17 : Lista_EXP, Expresion\n");}
-    |   tipo_exp {printf("\nRegla 18 : tipo_exp\n");}  
+    |   tipo_exp {printf("\nRegla 18 : tipo_exp\n");}
 ;
 tipo_exp: expresion {printf("\nRegla 19 : Expresion\n");}
     |   CTE_STRING {insertAsigM($1,2,0,0,1); printf("\nRegla 20 : String\n");}
@@ -177,8 +177,8 @@ constExp: ID OP_ASIG CTE_ENT     {validateIdDeclaration($1); putConstOnSymbolTab
     |   ID OP_ASIG  CTE_STRING    {validateIdDeclaration($1); putConstOnSymbolTable($1, $3, 0, 0, "CONST_STRING", 2); printf("\nRegla 40 : Cte Con Nombre String\n");}
     |   ID OP_ASIG  CTE_REAL    {validateIdDeclaration($1); putConstOnSymbolTable($1, "", 0, $3, "CONST_FLOAT", 3); printf("\nRegla 41 : Cte Con Nombre Float\n");}
 ;
-expresion: expresion OP_SUMA termino    {$$ = newNode("+",$1,$3); printf("\nRegla 42 : E + T\n");} 
-    |   expresion OP_RESTA termino      {$$ = newNode("-",$1,$3); printf("\nRegla 43 : E - T\n");} 
+expresion: expresion OP_SUMA termino    {$$ = newNode("+",$1,$3); printf("\nRegla 42 : E + T\n");}
+    |   expresion OP_RESTA termino      {$$ = newNode("-",$1,$3); printf("\nRegla 43 : E - T\n");}
     |   termino {$$ = $1;}
 ;
 termino: termino OP_MULT factor     {$$ = newNode("*",$1,$3); printf("\nRegla 44 : T * F\n");}
@@ -217,6 +217,7 @@ int main(int argc,char *argv[]){
         saveTable();
         ast treeCopy = *tree;
         printAndSaveAST(tree);
+        generateAssembler(tree);
     }
     fclose(yyin);
     return 0;
@@ -279,7 +280,7 @@ void validateCondition(char* left, ast* right, int fail) {
     }
 }
 
-char* changeType(char* t) { 
+char* changeType(char* t) {
     char* value;
     if(strcmp(t,"STRING") == 0 || strcmp(t,"INT") == 0 || strcmp(t,"FLOAT") == 0) {
         value = t;
@@ -291,14 +292,14 @@ char* changeType(char* t) {
         }else if(strcmp(t,"CTE_REAL") == 0 || strcmp(t,"FLOAT_CTE") == 0){
             value = "FLOAT";
         }
-    } 
-    return value; 
+    }
+    return value;
 }
 /*
-expresion OP_SUMA termino    {validateType($1, $3, 1); printf("\nRegla 47 : E + T\n");} 
+expresion OP_SUMA termino    {validateType($1, $3, 1); printf("\nRegla 47 : E + T\n");}
 
 
-void validateType(ast* left, ast* right, int fail) {      
+void validateType(ast* left, ast* right, int fail) {
     printf("Entre a verficar los Tipos en una expresion\n\n");
     if(right->value != NULL) {
         printf("A\n\n");
@@ -307,9 +308,9 @@ void validateType(ast* left, ast* right, int fail) {
         symbolNode* symbolRight = findSymbol(right->value);
         if(symbolRight != NULL && symbolLeft != NULL) {
         if(fail == 1 && (
-            strcmp(symbolLeft->type, "STRING") == 0 || 
+            strcmp(symbolLeft->type, "STRING") == 0 ||
             strcmp(symbolLeft->type, "STRING_C") == 0 ||
-            strcmp(symbolRight->type, "STRING") == 0 || 
+            strcmp(symbolRight->type, "STRING") == 0 ||
             strcmp(symbolRight->type, "STRING_C") == 0)) {
             fprintf(stderr, "\n Incompatible operation, line: %d\n", yylineno);
             exit(1);
