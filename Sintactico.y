@@ -217,7 +217,11 @@ int main(int argc,char *argv[]){
         saveTable();
         ast treeCopy = *tree;
         printAndSaveAST(tree);
+        printf("\n");
+        printf("\n");
         generateAssembler(tree);
+        printf("\n");
+        printf("\n");
     }
     fclose(yyin);
     return 0;

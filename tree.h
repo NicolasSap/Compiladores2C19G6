@@ -25,6 +25,9 @@ typedef struct listAsig {
 } asigSymbol;
 
 void generateAssembler();
+void generateCodeOperation();
+void generateCodeAsignation();
+void removeFirstCharConstant();
 void printAndSaveAST();
 void printAST();
 ast* newNode();
@@ -43,6 +46,8 @@ void deleteLastNode();
 ast* finishAsig();
 void printM();
 l_ast* insertMult();
+
+int contador = 1;
 
 char* searchValue(asigSymbol* a) {
     char s[220];
@@ -288,42 +293,97 @@ void generateSumCode(char* n1, char* n2) {
 
 void generateCode(ast* root) {
   if(
-    root->right != NULL
-    &&
-    root->left != NULL
-  ) {
-    if(
-      root->left->left == NULL && root->left->right == NULL
-      &&
-      root->right->left == NULL && root->right->right == NULL
-    ) {
-      // printf("\t %s \n", root->value);
-      // printf("%s \t\t %s \n", root->left->value, root->right->value);
-      printf("Se modifico el arbol en %s\n", root->value);
+        root->right != NULL &&
+        root->left  != NULL
+    ){
+        char operation[200];
+        if(strcmp(root->value,"+") == 0){
+            strcpy(operation, "ADD");
+            generateCodeOperation(root, &operation);
+        }else if (strcmp(root->value,"*") == 0){        
+            strcpy(operation, "MUL");
+            generateCodeOperation(root, &operation);
+        }else if (strcmp(root->value,"/") == 0){        
+            strcpy(operation, "DIV");
+            generateCodeOperation(root, &operation);
+        }else if (strcmp(root->value,"-") == 0){       
+            strcpy(operation, "SUB"); 
+            generateCodeOperation(root, &operation);
+        }else if (strcmp(root->value,":=") == 0){       
+            strcpy(operation, "MOV"); 
+            generateCodeAsignation(root, &operation);
+        }
 
-      //aca habria que generar el codigo assembler
-      if(root->value == "+") {
-        generateSumCode(root->left->value, root->right->value);
-        root->value = "Res";
-      } else {
-        root->value = NULL;
-      }
 
-      root->left = NULL;
-      root->right = NULL;
     }
-  }
 }
+
+void generateCodeOperation(ast * root, char * operation){
+    // Left leaf
+    char * aux = (char *) malloc(strlen(root->left->value)+1);
+    if(root->left->value[0] == '@'){
+        strcpy(aux, root->left->value);
+    }else if (root->left->value[0] == '_'){
+        removeFirstCharConstant(root->left->value);
+        strcpy(aux, root->left->value);
+    }else{
+        aux[0]='_';
+        strcat(aux, root->left->value);
+    }
+
+    printf("MOV R1, %s\n", aux);
+    free(aux);
+    // Rigth leaf
+    aux = (char *) malloc(strlen(root->right->value)+1);
+    if(root->right->value[0] == '@'){
+        strcpy(aux, root->right->value);
+    }else if (root->right->value[0] == '_'){
+        removeFirstCharConstant(root->right->value);
+        strcpy(aux, root->right->value);
+    }else{
+        aux[0]='_';
+        strcat(aux, root->right->value);
+    }
+
+    //Node
+    printf("%s R1, %s\n",operation,aux);
+    free(aux);
+    
+    char *s;
+    s = (char *) malloc(200);
+    sprintf(s,"@AUX_%d\0",contador);
+
+    free(root->value);
+    root->value = (char *) malloc(strlen(s));
+    strcpy(root->value, s);
+
+    printf("MOV %s, R1\n",root->value);
+
+    contador ++;
+}
+
+void removeFirstCharConstant(char * constant){
+    char * aux;
+    strcpy(aux, ++constant);
+    strcpy(constant, aux);
+}
+
+void generateCodeAsignation(ast * root, char * operation){
+    printf("%s R1, %s\n",operation,root->right->value);
+    printf("MOV _%s, R1\n", root->left->value);
+}
+
 
 void goThroughTree (ast *root) {
-  if ( root != NULL ) {
-    goThroughTree (root->right);
+  if ( root->left != NULL && root->right != NULL ) {
     goThroughTree (root->left);
-    generateCode(root);
+    goThroughTree (root->right);
+    generateCode  (root);
   }
+  
 }
 
-generateAssembler(ast* tree) {
+void generateAssembler(ast* tree) {
   ast* copy = tree;
   file = fopen("assembler-code.asm", "w");
   if (file == NULL)
