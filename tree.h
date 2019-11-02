@@ -271,7 +271,22 @@ void padding ( char ch, int n ){
     putchar ( ch );
 }
 
-int generateCode(ast* root) {
+void generateSumCode(char* n1, char* n2) {
+
+  printf(".DATA\n");
+  printf("\nN1 \t dd \t %s", n1);
+  printf("\nN2 \t dd \t %s", n2);
+  printf("\nRes \t dd \t ?");
+
+  printf("\n\n.CODE\n");
+  printf("fild  \t N1\n");
+  printf("fild  \t N2\n");
+  printf("fadd\n");
+  printf("fstp  \t Res\n");
+  printf("ffree\n");
+}
+
+void generateCode(ast* root) {
   if(
     root->right != NULL
     &&
@@ -282,37 +297,35 @@ int generateCode(ast* root) {
       &&
       root->right->left == NULL && root->right->right == NULL
     ) {
-      printf("\t %s \n", root->value);
-      printf("%s \t\t %s \n", root->left->value, root->right->value);
-      printf("Se modifico el arbol en %s", root->value);
+      // printf("\t %s \n", root->value);
+      // printf("%s \t\t %s \n", root->left->value, root->right->value);
+      printf("Se modifico el arbol en %s\n", root->value);
 
       //aca habria que generar el codigo assembler
-      root->left->value = NULL;
-      root->left->left = NULL;
-      root->left->right = NULL;
+      if(root->value == "+") {
+        generateSumCode(root->left->value, root->right->value);
+        root->value = "Res";
+      } else {
+        root->value = NULL;
+      }
 
-      root->right->value = NULL;
-      root->right->left = NULL;
-      root->right->right = NULL;
-      //modify treeNode
-      return 1;
+      root->left = NULL;
+      root->right = NULL;
     }
-    return 0;
   }
-  return 0;
 }
 
 void goThroughTree (ast *root) {
   if ( root != NULL ) {
     goThroughTree (root->right);
+    goThroughTree (root->left);
     generateCode(root);
-    goThroughTree ( root->left);
   }
 }
 
 generateAssembler(ast* tree) {
   ast* copy = tree;
-  file = fopen("assembler-code.txt", "w");
+  file = fopen("assembler-code.asm", "w");
   if (file == NULL)
   {
       printf("Error opening file!\n");
