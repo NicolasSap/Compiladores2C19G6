@@ -216,7 +216,7 @@ int main(int argc,char *argv[]){
             } while(!feof(yyin));
         saveTable();
         ast treeCopy = *tree;
-        printAndSaveAST(tree);
+        //printAndSaveAST(tree);
         printf("\n");
         printf("\n");
         generateAssembler(tree);

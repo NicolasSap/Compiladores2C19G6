@@ -27,7 +27,8 @@ typedef struct listAsig {
 void generateAssembler();
 void generateCodeOperation();
 void generateCodeAsignation();
-void removeFirstCharConstant();
+char * removeFirstCharConstant();
+char * insertFirtsChar();
 void printAndSaveAST();
 void printAST();
 ast* newNode();
@@ -313,22 +314,18 @@ void generateCode(ast* root) {
             strcpy(operation, "MOV"); 
             generateCodeAsignation(root, &operation);
         }
-
-
     }
 }
 
 void generateCodeOperation(ast * root, char * operation){
     // Left leaf
-    char * aux = (char *) malloc(strlen(root->left->value)+1);
+    char * aux;
     if(root->left->value[0] == '@'){
-        strcpy(aux, root->left->value);
+        aux = root->left->value;
     }else if (root->left->value[0] == '_'){
-        removeFirstCharConstant(root->left->value);
-        strcpy(aux, root->left->value);
+        aux = removeFirstCharConstant(root->left->value);
     }else{
-        aux[0]='_';
-        strcat(aux, root->left->value);
+        aux = insertFirtsChar(root->left->value);
     }
 
     printf("MOV R1, %s\n", aux);
@@ -336,13 +333,11 @@ void generateCodeOperation(ast * root, char * operation){
     // Rigth leaf
     aux = (char *) malloc(strlen(root->right->value)+1);
     if(root->right->value[0] == '@'){
-        strcpy(aux, root->right->value);
+        aux = root->left->value;
     }else if (root->right->value[0] == '_'){
-        removeFirstCharConstant(root->right->value);
-        strcpy(aux, root->right->value);
+        aux = removeFirstCharConstant(root->right->value);
     }else{
-        aux[0]='_';
-        strcat(aux, root->right->value);
+        aux = insertFirtsChar(root->right->value);
     }
 
     //Node
@@ -362,36 +357,53 @@ void generateCodeOperation(ast * root, char * operation){
     contador ++;
 }
 
-void removeFirstCharConstant(char * constant){
-    char * aux;
+char * removeFirstCharConstant(char * constant){
+    char * aux = (char *) malloc(strlen(constant)-1);
     strcpy(aux, ++constant);
-    strcpy(constant, aux);
+    return aux;
+}
+
+char * insertFirtsChar(char * constant){
+    char * aux = (char *) malloc(strlen(constant)+1);
+    aux[0] = '_';
+    strcat(aux,constant);
+    return aux;
 }
 
 void generateCodeAsignation(ast * root, char * operation){
-    printf("%s R1, %s\n",operation,root->right->value);
+    char * aux;
+    aux = (char *) malloc(strlen(root->right->value)+1);
+    if(root->right->value[0] == '@'){
+        aux = root->left->value;
+    }else if (root->right->value[0] == '_'){
+        aux = removeFirstCharConstant(root->right->value);
+    }else{
+        aux = insertFirtsChar(root->right->value);
+    }
+
+    printf("%s R1, %s\n",operation,aux);
     printf("MOV _%s, R1\n", root->left->value);
 }
 
 
 void goThroughTree (ast *root) {
-  if ( root->left != NULL && root->right != NULL ) {
-    goThroughTree (root->left);
-    goThroughTree (root->right);
+    if ( root->left != NULL ) {
+        goThroughTree (root->left);
+    }
+    if( root->right != NULL ) {
+        goThroughTree (root->right);
+    }
     generateCode  (root);
-  }
-  
 }
 
 void generateAssembler(ast* tree) {
-  ast* copy = tree;
-  file = fopen("assembler-code.asm", "w");
-  if (file == NULL)
-  {
-      printf("Error opening file!\n");
-      exit(1);
-  }
-
-  goThroughTree(copy);
-  fclose(file);
+    ast* copy = tree;
+    file = fopen("assembler-code.asm", "w");
+    if (file == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+    goThroughTree(copy);
+    fclose(file);
 }
