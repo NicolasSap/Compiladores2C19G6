@@ -3,8 +3,7 @@
 #include <stdlib.h>
 #include <conio.h>
 #include "y.tab.h"
-#include "simbolo.h"
-#include "tree.h"
+#include "assembler.h"
 
 void validateAsignation();
 void validateType();
@@ -216,7 +215,7 @@ int main(int argc,char *argv[]){
             } while(!feof(yyin));
         saveTable();
         ast treeCopy = *tree;
-        //printAndSaveAST(tree);
+        printAndSaveAST(tree);
         printf("\n");
         printf("\n");
         generateAssembler(tree);
