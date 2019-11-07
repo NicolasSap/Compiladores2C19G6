@@ -7,13 +7,16 @@
 
 void generateAssembler();
 void generateCode();
+void initiateCode();
 void goThroughTree();
 void generateCodeOperation();
 void generateCodeAsignation();
+void generateCodeAsignationSimple();
 char * removeFirstCharConstant();
 char * insertFirtsChar();
 void generateSumCode();
 void freeStack();
+char auxString[200];
 
 /*
 void padding();
@@ -27,20 +30,6 @@ void padding(char ch, int n) {
 }
 */
 
-void generateSumCode(char* n1, char* n2) {
-    printf(".DATA\n");
-    printf("\nN1 \t dd \t %s", n1);
-    printf("\nN2 \t dd \t %s", n2);
-    printf("\nRes \t dd \t ?");
-
-    printf("\n\n.CODE\n");
-    printf("fild  \t N1\n");
-    printf("fild  \t N2\n");
-    printf("fadd\n");
-    printf("fstp  \t Res\n");
-    printf("ffree\n");
-}
-
 void generateAssembler(ast* tree) {
     ast* copy = tree;
     file = fopen("Final.asm", "w");
@@ -48,8 +37,56 @@ void generateAssembler(ast* tree) {
         printf("Error opening file!\n");
         exit(1);
     }
+    initiateCode();
     goThroughTree(copy);
+    // free all st(?)
+    freeStack();
     fclose(file);
+}
+
+void initiateCode() {
+    char nameVar[200];
+    char type[200];
+    char length[200];
+    char valueVar[200];
+
+    FILE * ts = fopen("ts.txt", "r");
+    if (ts == NULL) {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+    strcpy(auxString,"*010101*"); // Código para que no printee FSTP
+    fprintf(file,"include macros2.asm \n\n\n");
+    fprintf(file,".MODEL LARGE\n");
+    fprintf(file,".386\n");
+    fprintf(file,".STACK 200h\n\n");
+    fprintf(file,"MAXTEXTSIZE equ 40\n\n");
+    fprintf(file,".DATA\n");
+
+    fgets(nameVar, 200, ts);
+    // VER BIEN LO DE SI ES STRING O SI ES INT O ALGUNA WEA ASI
+    while (!feof(ts)) {
+        fscanf (ts, "%s\t%s\t%s\t%s", nameVar, type, valueVar, length);
+        if (strcmp(type, "STRING") == 0) {
+           fprintf(file, "\t%s\tdb\tMAXTEXTSIZE dup (?),'$'\n", nameVar);
+        } else if (strcmp(type, "STRING_CTE") == 0) {
+            fprintf(file, "\t%s\tdb\t'%s','$', %d dup (?)\n", nameVar, valueVar, length);
+        } else if (strcmp(type, "INTEGER_CTE") == 0) {
+            fprintf(file, "\t%s\tdd\t%s.0\n", nameVar, valueVar);
+        } else if(strcmp(valueVar,"-") == 0) {
+            fprintf(file, "\t%s\tdd\t?\n", nameVar);
+        } else {
+            fprintf(file, "\t%s\tdd\t%s\n", nameVar, valueVar);
+        }
+    }
+    fprintf(file, "\t_SUM\tdd\t?\n");
+    fprintf(file, "\t_SUB\tdd\t?\n");
+    fprintf(file, "\t_MUL\tdd\t?\n");
+    fprintf(file, "\t_DIV\tdd\t?\n");
+    fclose(ts);
+
+    fprintf(file, "\n\n.CODE\n");
 }
 
 void goThroughTree(ast *root) {
@@ -64,7 +101,7 @@ void goThroughTree(ast *root) {
 
 void generateCode(ast* root) {
     if(root->right != NULL && root->left  != NULL) {
-        printf("\t[%s]\n", root->value);
+        printf("\tLEFT=[%s]\t[%s]\tRIGHT[%s]\n", root->left->value, root->value, root->right->value);
         char operation[200];
         if(strcmp(root->value,"+") == 0) {
             strcpy(operation, "ADD");
@@ -78,33 +115,29 @@ void generateCode(ast* root) {
         }else if (strcmp(root->value,"-") == 0) {       
             strcpy(operation, "SUB"); 
             generateCodeOperation(root, &operation);
-        }/*else if (strcmp(root->value,":=") == 0) {       
-            strcpy(operation, "ASIG"); 
-            generateCodeOperation(root, &operation);
-            //generateCodeAsignation(root, &operation);
-        }*/
+        }else if (strcmp(root->value,":=") == 0) {       
+            if (strcmp(root->right->value,"_SUM") == 0 || strcmp(root->right->value,"_SUB") == 0 || strcmp(root->right->value,"_MUL") == 0 || strcmp(root->right->value,"_DIV") == 0) {
+                generateCodeAsignation(root);
+            } else {
+                generateCodeAsignationSimple(root);
+            }
+            
+        }
     }
 }
 
 void generateCodeOperation(ast * root, char * operation) {
     // Search operands to know the type
-    symbolNode* symbolLeft = findSymbol(root->left->value);
-    symbolNode* symbolRight = findSymbol(root->right->value);
-
-    // If int do FILD, IF float do FLD for left then for right
-    //Left
-    if(strcmp(symbolLeft->type,"CTE_ENT") == 0 || strcmp(symbolLeft->type,"INTEGER_CTE") == 0 || strcmp(symbolLeft->type,"INT") == 0){
-        fprintf(file, "\tFILD %s\n", root->left->value);
-    }else if(strcmp(symbolLeft->type,"CTE_REAL") == 0 || strcmp(symbolLeft->type,"FLOAT_CTE") == 0 || strcmp(symbolLeft->type,"FLOAT") == 0){
-        fprintf(file, "\tFLD %s\n", root->left->value);
-    }
-    //Right
-    if(strcmp(symbolRight->type,"CTE_ENT") == 0 || strcmp(symbolRight->type,"INTEGER_CTE") == 0 || strcmp(symbolRight->type,"INT") == 0){
-        fprintf(file, "\tFILD %s\n", root->right->value);
-    }else if(strcmp(symbolRight->type,"CTE_REAL") == 0 || strcmp(symbolRight->type,"FLOAT_CTE") == 0 || strcmp(symbolRight->type,"FLOAT") == 0){
-        fprintf(file, "\tFLD %s\n", root->right->value);
+    if(strcmp(auxString,"*010101*") != 0) {
+        fprintf(file, "%s", auxString);
+        strcpy(auxString,"*010101*"); // Código para que no printee FSTP
     }
 
+    fprintf(file, "\t; %s\n", operation);
+
+    fprintf(file, "\tFLD %s\n", root->left->value);
+    fprintf(file, "\tFLD %s\n", root->right->value);
+    
     // Check if + - / * and print in .asm
     if(strcmp(operation,"ADD") == 0) {
         fprintf(file, "\tFADD\n", root->value);
@@ -119,64 +152,34 @@ void generateCodeOperation(ast * root, char * operation) {
         fprintf(file, "\tFDIV\n", root->value);
         root->value = "_DIV";  
     }
-    fprintf(file, "\tFSTP %s\n", root->value);
-    // free all st(?)
-    freeStack();
+    sprintf(auxString, "\tFSTP %s\n\n", root->value);
+}
+
+void generateCodeAsignation(ast * root) {
+    fprintf(file, "\tFSTP %s\n\n", root->left->value); 
+    strcpy(auxString,"*010101*"); // Código para que no printee FSTP
+}
+
+void generateCodeAsignationSimple(ast * root) {
+    fprintf(file, "\t; Simple Asignation\n");
+    fprintf(file, "\tFLD %s\n", root->right->value);
+    fprintf(file, "\tFSTP %s\n\n", root->left->value); 
+    strcpy(auxString,"*010101*"); // Código para que no printee FSTP
 }
 
 void freeStack() {
     fprintf(file, "\n\t; FREE STACK\n"); 
-     fprintf(file, "\tFFREE st(0)\n");
-     fprintf(file, "\tFFREE st(1)\n");
-     fprintf(file, "\tFFREE st(2)\n");
-     fprintf(file, "\tFFREE st(3)\n");
-     fprintf(file, "\tFFREE st(4)\n");
-     fprintf(file, "\tFFREE st(5)\n");
-     fprintf(file, "\tFFREE st(6)\n");
-     fprintf(file, "\tFFREE st(7)\n");
-     fprintf(file, "\n");
+    fprintf(file, "\tFFREE st(0)\n");
+    fprintf(file, "\tFFREE st(1)\n");
+    fprintf(file, "\tFFREE st(2)\n");
+    fprintf(file, "\tFFREE st(3)\n");
+    fprintf(file, "\tFFREE st(4)\n");
+    fprintf(file, "\tFFREE st(5)\n");
+    fprintf(file, "\tFFREE st(6)\n");
+    fprintf(file, "\tFFREE st(7)\n\n");
+    fprintf(file, "\tEND START");
 }
 /*
-void generateCodeOperation(ast * root, char * operation) {
-    // Left leaf
-    char * aux;
-    if(root->left->value[0] == '@') {
-        aux = root->left->value;
-    }else if (root->left->value[0] == '_') {
-        aux = removeFirstCharConstant(root->left->value);
-    }else{
-        aux = insertFirtsChar(root->left->value);
-    }
-
-    printf("MOV R1, %s\n", aux);
-    free(aux);
-    // Rigth leaf
-    aux = (char *) malloc(strlen(root->right->value)+1);
-    if(root->right->value[0] == '@') {
-        aux = root->left->value;
-    }else if (root->right->value[0] == '_') {
-        aux = removeFirstCharConstant(root->right->value);
-    }else{
-        aux = insertFirtsChar(root->right->value);
-    }
-
-    //Node
-    printf("%s R1, %s\n",operation,aux);
-    free(aux);
-    
-    char *s;
-    s = (char *) malloc(200);
-    sprintf(s,"@AUX_%d\0",contador);
-
-    free(root->value);
-    root->value = (char *) malloc(strlen(s));
-    strcpy(root->value, s);
-
-    printf("MOV %s, R1\n",root->value);
-
-    contador ++;
-}
-*/
 char * removeFirstCharConstant(char * constant) {
     char * aux = (char *) malloc(strlen(constant)-1);
     strcpy(aux, ++constant);
@@ -188,18 +191,4 @@ char * insertFirtsChar(char * constant) {
     aux[0] = '_';
     strcat(aux,constant);
     return aux;
-}
-/*
-void generateCodeAsignation(ast * root, char * operation) {
-    char * aux;
-    aux = (char *) malloc(strlen(root->right->value)+1);
-    if(root->right->value[0] == '@') {
-        aux = root->left->value;
-    } else if (root->right->value[0] == '_') {
-        aux = removeFirstCharConstant(root->right->value);
-    } else {
-        aux = insertFirtsChar(root->right->value);
-    }
-    printf("%s R1, %s\n",operation,aux);
-    printf("MOV _%s, R1\n", root->left->value);
 }*/

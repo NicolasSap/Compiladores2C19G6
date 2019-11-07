@@ -246,7 +246,12 @@ void validateIdDeclaration(char* id) {
 
 void validateAsignation(char* id, ast* exp) {
     symbolNode* symbol = findSymbol(id);
-    symbolNode* treeValue = findSymbol(exp->value);
+    symbolNode* treeValue;
+    if (strcmp(exp->value,"-") != 0) {
+        treeValue = findSymbol(exp->value);
+    } else {
+        treeValue = findSymbol("+");
+    }
     if (symbol != NULL && treeValue != NULL) {
         if((strcmp(symbol->type, "INT") == 0 || strcmp(symbol->type, "FLOAT") == 0) && (strcmp(treeValue->type, "STRING") == 0 || strcmp(treeValue->type, "CONST_STRING") == 0 )) {
             fprintf(stderr, "\n[E] Incompatible assignment, line: %d\n", yylineno);
@@ -262,7 +267,7 @@ void validateAsignation(char* id, ast* exp) {
 void validateAsignationString(char* id){
     symbolNode* symbol = findSymbol(id);
     if (strcmp(symbol->type, "STRING") != 0){
-        fprintf(stderr, "\n[E] Incompatible assignment, line: %d\n", yylineno);
+        fprintf(stderr, "\n[E] Incompatible string assignment, line: %d\n", yylineno);
         exit(1);
     }
 }
