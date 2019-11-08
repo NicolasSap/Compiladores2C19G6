@@ -6,6 +6,7 @@
 #include "tree.h"
 
 void generateAssembler();
+void generateConditionIf();
 void generateCode();
 void initiateCode();
 void goThroughTree();
@@ -17,18 +18,7 @@ char * insertFirtsChar();
 void generateSumCode();
 void freeStack();
 char auxString[200];
-
-/*
-void padding();
-
-void padding(char ch, int n) {
-    int i;
-
-    for ( i = 0; i < n; i++ ){
-        putchar ( ch );
-    }
-}
-*/
+int auxContador = 0;
 
 void generateAssembler(ast* tree) {
     ast* copy = tree;
@@ -103,7 +93,14 @@ void generateCode(ast* root) {
     if(root->right != NULL && root->left  != NULL) {
         printf("\tLEFT=[%s]\t[%s]\tRIGHT[%s]\n", root->left->value, root->value, root->right->value);
         char operation[200];
-        if(strcmp(root->value,"+") == 0) {
+        if (strcmp(root->value,">") == 0) {
+
+
+            generateConditionIf(root);
+            // despues va lo de adentro del IF
+
+
+        } else if (strcmp(root->value,"+") == 0) {
             strcpy(operation, "ADD");
             generateCodeOperation(root, &operation);
         }else if (strcmp(root->value,"*") == 0) {        
@@ -121,13 +118,41 @@ void generateCode(ast* root) {
             } else {
                 generateCodeAsignationSimple(root);
             }
-            
         }
     }
 }
 
+void generateConditionIf(ast * root){
+    if(strcmp(root->value, "AND") == 0){
+        //generateAndCondition(root);
+    }else if(strcmp(root->value, "OR") == 0){
+        //generateOrCondition(root);
+    }else{ // Unique condition
+        fprintf(file,"\tFLD %s\n", root->left->value);
+        fprintf(file,"\tFCOMP %s\n", root->right->value);
+        fprintf(file,"\tFSTSW AX\n");
+        fprintf(file,"\tSAHF\n");
+
+        if (strcmp(root->value,">=") == 0) {    
+            fprintf(file,"\tJB IF_%d\n", auxContador);
+        }else if (strcmp(root->value,">") == 0) {      
+            fprintf(file,"\tJLE IF_%d\n", auxContador);
+        }else if (strcmp(root->value,"<=") == 0) {      
+            fprintf(file,"\tJA IF_%d\n", auxContador);
+        }else if (strcmp(root->value,"<") == 0) {      
+            fprintf(file,"\tJAE IF_%d\n", auxContador);
+        }else if (strcmp(root->value,"!=") == 0) {      
+            fprintf(file,"\tJE IF_%d\n", auxContador);
+        }else if (strcmp(root->value,"==") == 0) {      
+            fprintf(file,"\tJNE IF_%d\n", auxContador);
+        }
+        auxContador ++;
+    }
+    fprintf(file,"\n");
+}
+
 void generateCodeOperation(ast * root, char * operation) {
-    // Search operands to know the type
+
     if(strcmp(auxString,"*010101*") != 0) {
         fprintf(file, "%s", auxString);
         strcpy(auxString,"*010101*"); // Código para que no printee FSTP
@@ -163,6 +188,11 @@ void generateCodeAsignation(ast * root) {
 void generateCodeAsignationSimple(ast * root) {
     fprintf(file, "\t; Simple Asignation\n");
     fprintf(file, "\tFLD %s\n", root->right->value);
+    fprintf(file, "\tFSTP %s\n\n", root->left->value); 
+    strcpy(auxString,"*010101*"); // Código para que no printee FSTP
+}
+
+void generateCondition(ast * root) {
     fprintf(file, "\tFSTP %s\n\n", root->left->value); 
     strcpy(auxString,"*010101*"); // Código para que no printee FSTP
 }
