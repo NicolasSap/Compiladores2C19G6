@@ -5,11 +5,31 @@
 #include "simbolo.h"
 #include "tree.h"
 
+struct stackStatements { 
+    int top; 
+    int* array; 
+};
+
+struct stackOperators { 
+    int top; 
+    char array[5000][300]; 
+}; 
+
 void generateAssembler();
-void generateConditionIf();
+void generateCondition();
 void generateCode();
 void initiateCode();
+int verifyIsCondition();
+void generateAndCondition();
+void generateOrCondition();
 void goThroughTree();
+void printLabel();
+void printJump();
+void printOrJump();
+int pop();
+void push();
+char* popOperator();
+void pushOperator();
 void generateCodeOperation();
 void generateCodeAsignation();
 void generateCodeAsignationSimple();
@@ -17,8 +37,11 @@ char * removeFirstCharConstant();
 char * insertFirtsChar();
 void generateSumCode();
 void freeStack();
+
+struct stackStatements* stackIf;
+struct stackOperators* stackOperator;
 char auxString[200];
-int auxContador = 0;
+int auxCount = 0;
 
 void generateAssembler(ast* tree) {
     ast* copy = tree;
@@ -27,6 +50,9 @@ void generateAssembler(ast* tree) {
         printf("Error opening file!\n");
         exit(1);
     }
+    stackIf = (struct stackStatements*) malloc(sizeof(struct stackStatements)); 
+    stackIf->array = (int*) malloc(5000* sizeof(int));
+    stackOperator = (struct stackOperators*) malloc(sizeof(struct stackOperators));
     initiateCode();
     goThroughTree(copy);
     // free all st(?)
@@ -55,7 +81,7 @@ void initiateCode() {
     fprintf(file,".DATA\n");
 
     fgets(nameVar, 200, ts);
-    // VER BIEN LO DE SI ES STRING O SI ES INT O ALGUNA WEA ASI
+    
     while (!feof(ts)) {
         fscanf (ts, "%s\t%s\t%s\t%s", nameVar, type, valueVar, length);
         if (strcmp(type, "STRING") == 0) {
@@ -83,6 +109,15 @@ void goThroughTree(ast *root) {
     if ( root->left != NULL ) {
         goThroughTree (root->left);
     }
+    if (strcmp(root->value,"OR") == 0) {
+        printOrJump(popOperator());
+    } else if (strcmp(root->value,"AND") == 0) {
+        printJump(popOperator());
+    } else if (strcmp(root->value,"IF") == 0) {
+        printJump(popOperator());
+        printf("%s-%s\n",root->left->value, root->right->value);
+        auxCount ++;
+    }
     if( root->right != NULL ) {
         goThroughTree (root->right);
     }
@@ -90,17 +125,22 @@ void goThroughTree(ast *root) {
 }
 
 void generateCode(ast* root) {
+    // no va a funcar si usamos para alguno que tenga un solo hijo ocn null
     if(root->right != NULL && root->left  != NULL) {
         printf("\tLEFT=[%s]\t[%s]\tRIGHT[%s]\n", root->left->value, root->value, root->right->value);
         char operation[200];
-        if (strcmp(root->value,">") == 0) {
+        if (verifyIsCondition(root->value)) {
 
 
-            generateConditionIf(root);
-            // despues va lo de adentro del IF
+            generateCondition(root);
 
+            // poner un flag o almacenar en la pila los labels 
+            // para fijarte despues en generate code operation si tenes que 
+            // poner el label para que salte ahi
 
-        } else if (strcmp(root->value,"+") == 0) {
+        } else if (strcmp(root->value,"IF") == 0) {
+            printLabel(root->value);
+        }else if (strcmp(root->value,"+") == 0) {
             strcpy(operation, "ADD");
             generateCodeOperation(root, &operation);
         }else if (strcmp(root->value,"*") == 0) {        
@@ -109,7 +149,7 @@ void generateCode(ast* root) {
         }else if (strcmp(root->value,"/") == 0) {        
             strcpy(operation, "DIV");
             generateCodeOperation(root, &operation);
-        }else if (strcmp(root->value,"-") == 0) {       
+        }else if (strcmp(root->value,"-") == 0) {     
             strcpy(operation, "SUB"); 
             generateCodeOperation(root, &operation);
         }else if (strcmp(root->value,":=") == 0) {       
@@ -122,33 +162,90 @@ void generateCode(ast* root) {
     }
 }
 
-void generateConditionIf(ast * root){
-    if(strcmp(root->value, "AND") == 0){
-        //generateAndCondition(root);
-    }else if(strcmp(root->value, "OR") == 0){
-        //generateOrCondition(root);
-    }else{ // Unique condition
-        fprintf(file,"\tFLD %s\n", root->left->value);
-        fprintf(file,"\tFCOMP %s\n", root->right->value);
-        fprintf(file,"\tFSTSW AX\n");
-        fprintf(file,"\tSAHF\n");
+void printLabel(char * operation){
+    fprintf(file, "%s_%d:\n", operation, pop(stackIf));
+}
 
-        if (strcmp(root->value,">=") == 0) {    
-            fprintf(file,"\tJB IF_%d\n", auxContador);
-        }else if (strcmp(root->value,">") == 0) {      
-            fprintf(file,"\tJLE IF_%d\n", auxContador);
-        }else if (strcmp(root->value,"<=") == 0) {      
-            fprintf(file,"\tJA IF_%d\n", auxContador);
-        }else if (strcmp(root->value,"<") == 0) {      
-            fprintf(file,"\tJAE IF_%d\n", auxContador);
-        }else if (strcmp(root->value,"!=") == 0) {      
-            fprintf(file,"\tJE IF_%d\n", auxContador);
-        }else if (strcmp(root->value,"==") == 0) {      
-            fprintf(file,"\tJNE IF_%d\n", auxContador);
-        }
-        auxContador ++;
+int pop(struct stackStatements* stack) { 
+    return stack->array[stack->top--]; 
+}
+
+void push(struct stackStatements* stack, int item) { 
+    stack->array[++stack->top] = item; 
+} 
+
+char* popOperator() { 
+    return stackOperator->array[stackOperator->top--]; 
+}
+
+void pushOperator(char* item) { 
+    strcpy(stackOperator->array[++stackOperator->top],item); 
+} 
+
+void generateCondition(ast * root) {
+    fprintf(file, "\t; Condition\n");
+    fprintf(file,"\tFLD %s\n", root->left->value);
+    fprintf(file,"\tFCOMP %s\n", root->right->value);
+    fprintf(file,"\tFSTSW AX\n");
+    fprintf(file,"\tSAHF\n");
+    pushOperator(root->value);
+}
+
+void printJump(char * value){
+    if (strcmp(value,">=") == 0) {    
+        fprintf(file,"\tJL IF_%d\n", auxCount);
+    }else if (strcmp(value,">") == 0) {      
+        fprintf(file,"\tJLE IF_%d\n", auxCount);
+    }else if (strcmp(value,"<=") == 0) {      
+        fprintf(file,"\tJG IF_%d\n", auxCount);
+    }else if (strcmp(value,"<") == 0) {      
+        fprintf(file,"\tJGE IF_%d\n", auxCount);
+    }else if (strcmp(value,"!=") == 0) {      
+        fprintf(file,"\tJE IF_%d\n", auxCount);
+    }else if (strcmp(value,"==") == 0) {      
+        fprintf(file,"\tJNE IF_%d\n", auxCount);
     }
+    push(stackIf, auxCount);
     fprintf(file,"\n");
+}
+
+void printOrJump(char * value){
+    if (strcmp(value,">=") == 0) {    
+        fprintf(file,"\tJGE IF_%d\n", auxCount);
+    }else if (strcmp(value,">") == 0) {      
+        fprintf(file,"\tJG IF_%d\n", auxCount);
+    }else if (strcmp(value,"<=") == 0) {      
+        fprintf(file,"\tJLE IF_%d\n", auxCount);
+    }else if (strcmp(value,"<") == 0) {      
+        fprintf(file,"\tJL IF_%d\n", auxCount);
+    }else if (strcmp(value,"!=") == 0) {      
+        fprintf(file,"\tJNE IF_%d\n", auxCount);
+    }else if (strcmp(value,"==") == 0) {      
+        fprintf(file,"\tJE IF_%d\n", auxCount);
+    }
+    push(stackIf, auxCount);
+    fprintf(file,"\n");
+}
+
+void generateAndCondition(ast * root) {
+
+}
+
+void generateOrCondition(ast * root) {
+
+}
+
+int verifyIsCondition(char* value) {
+    if (
+        strcmp(value,">=") == 0 ||
+        strcmp(value,">") == 0 || 
+        strcmp(value,"<=") == 0 || 
+        strcmp(value,"<") == 0 ||
+        strcmp(value,"!=") == 0 ||
+        strcmp(value,"==") == 0) {
+            return 1; // is an operand
+    }
+    return 0; // not an operand
 }
 
 void generateCodeOperation(ast * root, char * operation) {
@@ -188,11 +285,6 @@ void generateCodeAsignation(ast * root) {
 void generateCodeAsignationSimple(ast * root) {
     fprintf(file, "\t; Simple Asignation\n");
     fprintf(file, "\tFLD %s\n", root->right->value);
-    fprintf(file, "\tFSTP %s\n\n", root->left->value); 
-    strcpy(auxString,"*010101*"); // Código para que no printee FSTP
-}
-
-void generateCondition(ast * root) {
     fprintf(file, "\tFSTP %s\n\n", root->left->value); 
     strcpy(auxString,"*010101*"); // Código para que no printee FSTP
 }
