@@ -15,6 +15,7 @@ struct stackOperators {
     char array[5000][300]; 
 }; 
 
+void swapTopStack();
 void generateAssembler();
 void generateCondition();
 void generateCode();
@@ -42,6 +43,7 @@ struct stackStatements* stackIf;
 struct stackOperators* stackOperator;
 char auxString[200];
 int auxCount = 0;
+int wasOr = 0;
 
 void generateAssembler(ast* tree) {
     ast* copy = tree;
@@ -111,12 +113,22 @@ void goThroughTree(ast *root) {
     }
     if (strcmp(root->value,"OR") == 0) {
         printOrJump(popOperator());
+        wasOr = 1;
+        auxCount++;
     } else if (strcmp(root->value,"AND") == 0) {
         printJump(popOperator());
     } else if (strcmp(root->value,"IF") == 0) {
         printJump(popOperator());
-        printf("%s-%s\n",root->left->value, root->right->value);
+        if (wasOr == 1) {
+            swapTopStack(stackIf);
+            printLabel("IF");
+            wasOr = 0;
+        }
         auxCount ++;
+    } else if (strcmp(root->value,"CUERPO_IF") == 0) {
+        fprintf(file,"\tJI IF_%d\n", auxCount);
+        printLabel("IF");
+        push(stackIf, auxCount);
     }
     if( root->right != NULL ) {
         goThroughTree (root->right);
@@ -140,19 +152,19 @@ void generateCode(ast* root) {
 
         } else if (strcmp(root->value,"IF") == 0) {
             printLabel(root->value);
-        }else if (strcmp(root->value,"+") == 0) {
+        } else if (strcmp(root->value,"+") == 0) {
             strcpy(operation, "ADD");
             generateCodeOperation(root, &operation);
-        }else if (strcmp(root->value,"*") == 0) {        
+        } else if (strcmp(root->value,"*") == 0) {        
             strcpy(operation, "MUL");
             generateCodeOperation(root, &operation);
-        }else if (strcmp(root->value,"/") == 0) {        
+        } else if (strcmp(root->value,"/") == 0) {        
             strcpy(operation, "DIV");
             generateCodeOperation(root, &operation);
-        }else if (strcmp(root->value,"-") == 0) {     
+        } else if (strcmp(root->value,"-") == 0) {     
             strcpy(operation, "SUB"); 
             generateCodeOperation(root, &operation);
-        }else if (strcmp(root->value,":=") == 0) {       
+        } else if (strcmp(root->value,":=") == 0) {       
             if (strcmp(root->right->value,"_SUM") == 0 || strcmp(root->right->value,"_SUB") == 0 || strcmp(root->right->value,"_MUL") == 0 || strcmp(root->right->value,"_DIV") == 0) {
                 generateCodeAsignation(root);
             } else {
@@ -162,8 +174,17 @@ void generateCode(ast* root) {
     }
 }
 
+void swapTopStack (struct stackStatements* s) {
+    int poppedCount;
+    int poppedCount1;
+    poppedCount1 = pop(s);
+    poppedCount = pop(s);
+    push(stackIf, poppedCount1);
+    push(stackIf, poppedCount);
+}
+
 void printLabel(char * operation){
-    fprintf(file, "%s_%d:\n", operation, pop(stackIf));
+    fprintf(file, "\n%s_%d:\n", operation, pop(stackIf));
 }
 
 int pop(struct stackStatements* stack) { 
@@ -285,7 +306,7 @@ void generateCodeAsignation(ast * root) {
 void generateCodeAsignationSimple(ast * root) {
     fprintf(file, "\t; Simple Asignation\n");
     fprintf(file, "\tFLD %s\n", root->right->value);
-    fprintf(file, "\tFSTP %s\n\n", root->left->value); 
+    fprintf(file, "\tFSTP %s\n", root->left->value); 
     strcpy(auxString,"*010101*"); // Código para que no printee FSTP
 }
 
