@@ -15,6 +15,7 @@ struct stackOperators {
     char array[5000][300]; 
 }; 
 
+void printTsInAsm();
 void swapTopStack();
 void generateAssembler();
 void generateCondition();
@@ -63,18 +64,8 @@ void generateAssembler(ast* tree) {
 }
 
 void initiateCode() {
-    char nameVar[200];
-    char type[200];
-    char length[200];
-    char valueVar[200];
-
-    FILE * ts = fopen("ts.txt", "r");
-    if (ts == NULL) {
-        printf("Error opening file!\n");
-        exit(1);
-    }
-
     strcpy(auxString,"*010101*"); // Código para que no printee FSTP
+
     fprintf(file,"include macros2.asm \n\n\n");
     fprintf(file,".MODEL LARGE\n");
     fprintf(file,".386\n");
@@ -82,36 +73,41 @@ void initiateCode() {
     fprintf(file,"MAXTEXTSIZE equ 40\n\n");
     fprintf(file,".DATA\n");
 
-    fgets(nameVar, 200, ts);
-    
-    while (!feof(ts)) {
-        fscanf (ts, "%s\t%s\t%s\t%s", nameVar, type, valueVar, length);
-        if (strcmp(type, "STRING") == 0) {
-           fprintf(file, "\t%s\tdb\tMAXTEXTSIZE dup (?),'$'\n", nameVar);
-        } else if (strcmp(type, "STRING_CTE") == 0) {
-            fprintf(file, "\t%s\tdb\t'%s','$', %d dup (?)\n", nameVar, valueVar, length);
-        } else if (strcmp(type, "INTEGER_CTE") == 0) {
-            fprintf(file, "\t%s\tdd\t%s.0\n", nameVar, valueVar);
-        } else if(strcmp(valueVar,"-") == 0) {
-            fprintf(file, "\t%s\tdd\t?\n", nameVar);
-        } else {
-            fprintf(file, "\t%s\tdd\t%s\n", nameVar, valueVar);
-        }
-    }
+    printTsInAsm();
+
     fprintf(file, "\t_SUM\tdd\t?\n");
     fprintf(file, "\t_SUB\tdd\t?\n");
     fprintf(file, "\t_MUL\tdd\t?\n");
     fprintf(file, "\t_DIV\tdd\t?\n");
-    fclose(ts);
 
     fprintf(file, "\n\n.CODE\n");
+}
+
+void printTsInAsm() {
+    symbolNode* current = symbolTable;
+    while(current != NULL){
+        if (strcmp(current->type, "STRING") == 0) {
+           fprintf(file, "\t%s\tdb\tMAXTEXTSIZE dup (?),'$'\n", current->name);
+        } else if (strcmp(current->type, "STRING_CTE") == 0) {
+            fprintf(file, "\t%s\tdb\t'%s','$', %d dup (?)\n", current->name, current->value, current->length);
+        } else if (strcmp(current->type, "INTEGER_CTE") == 0) {
+            fprintf(file, "\t%s\tdd\t%s.0\n", current->name, current->value);
+        } else if(strcmp(current->value,"-") == 0) {
+            fprintf(file, "\t%s\tdd\t?\n", current->name);
+        } else {
+            fprintf(file, "\t%s\tdd\t%s\n", current->name, current->value);
+        }
+        current = current->next;
+    }  
 }
 
 void goThroughTree(ast *root) {
     if ( root->left != NULL ) {
         goThroughTree (root->left);
     }
-    if (strcmp(root->value,"OR") == 0) {
+    if (strcmp(root->value,"NOT") == 0) {
+        printOrJump(popOperator()); // SE HACE EL CONTRARIO PORQUE ES UN NOT
+    } else if (strcmp(root->value,"OR") == 0) {
         printOrJump(popOperator());
         wasOr = 1;
         auxCount++;
@@ -146,9 +142,7 @@ void generateCode(ast* root) {
 
             generateCondition(root);
 
-            // poner un flag o almacenar en la pila los labels 
-            // para fijarte despues en generate code operation si tenes que 
-            // poner el label para que salte ahi
+
 
         } else if (strcmp(root->value,"IF") == 0) {
             printLabel(root->value);
