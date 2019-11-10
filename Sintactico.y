@@ -165,7 +165,7 @@ operador_logico: OP_MAX {$$ = ">"; printf("\nRegla 28 : >\n");}
 ;
 iteracion: REPEAT cuerpo_programa UNTIL condiciones     {$$ = newNode("REPEAT",newNode("UNTIL",$4,NULL),$2);printf("\nRegla 34 : Repeat\n");}
 ;
-printear: PRINT CTE_STRING      {$$ = newNode("READ",newLeaf(getSymbolName($2,3)),NULL);printf("\nRegla 36 : Print String\n");}
+printear: PRINT CTE_STRING      {$$ = newNode("PRINT",newLeaf(getSymbolName($2,3)),NULL);printf("\nRegla 36 : Print String\n");}
     |   PRINT ID                {$$ = newNode("PRINT",newLeaf($2),NULL); printf("\nRegla 37 : Print ID\n");}
 ;
 obtain: READ ID {$$ = newNode("READ",newLeaf($2),NULL); printf("\nRegla 38 : Read Variable\n");}

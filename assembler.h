@@ -21,6 +21,7 @@ struct stackUntilCondition {
 }; 
 
 void printTsInAsm();
+void endAssembler();
 void swapTopStack();
 void generateAssembler();
 void generateCondition();
@@ -84,13 +85,16 @@ void generateAssembler(ast* tree) {
     goThroughTree(copy);
     // free all st(?)
     freeStack();
+    endAssembler();
     fclose(file);
 }
+
 
 void initiateCode() {
     strcpy(auxString,"*010101*"); // Código para que no printee FSTP
 
-    fprintf(file,"include macros2.asm \n\n\n");
+    fprintf(file,"include macros2.asm \n");
+    fprintf(file,"include number.asm \n\n\n");
     fprintf(file,".MODEL LARGE\n");
     fprintf(file,".386\n");
     fprintf(file,".STACK 200h\n\n");
@@ -106,6 +110,12 @@ void initiateCode() {
 
     fprintf(file, "\n\n.CODE\n");
     fprintf(file, "\tbegin: .startup\n\n");
+}
+
+void endAssembler(){
+    fprintf(file, "\n\n;END PROGRAM\n\tmov AX, 4C00h\n");
+    fprintf(file, "\tint 21h\n\n");
+    fprintf(file, "\tEND begin");
 }
 
 void printTsInAsm() {
@@ -244,11 +254,10 @@ void generateCode(ast* root) {
         symbolNode* symbol = findSymbol(root->left->value);
         if((strcmp(symbol->type, "STRING_CTE") == 0 || strcmp(symbol->type, "STRING") == 0)) {
             fprintf(file,"\tdisplayString %s\n", root->left->value);
-        } else if ((strcmp(symbol->type, "INT") == 0)) {
-            fprintf(file,"\tdisplayInteger %s\n", root->left->value);
-        } else if ((strcmp(symbol->type, "FLOAT") == 0)) {
-            fprintf(file,"\tdisplayFloat %s\n", root->left->value);
-        }
+        } else if ((strcmp(symbol->type, "INT") == 0) || (strcmp(symbol->type, "FLOAT") == 0)) {
+            fprintf(file,"\tdisplayFloat %s,2\n", root->left->value);
+        } 
+        fprintf(file,"\tnewLine 1\n");
     } else if(strcmp(root->value,"READ") == 0) {
         fprintf(file,"\tgetString %s\n", root->left->value);
     }
@@ -467,7 +476,6 @@ void freeStack() {
     fprintf(file, "\tFFREE st(5)\n");
     fprintf(file, "\tFFREE st(6)\n");
     fprintf(file, "\tFFREE st(7)\n\n");
-    fprintf(file, "\tEND begin");
 }
 /*
 char * removeFirstCharConstant(char * constant) {
