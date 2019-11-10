@@ -240,6 +240,17 @@ void generateCode(ast* root) {
     // no va a funcar si usamos para alguno que tenga un solo hijo ocn null
     if (strcmp(root->value,"UNTIL") == 0) {
         pushUntil(auxCondition);
+    } else if (strcmp(root->value,"PRINT") == 0) {
+        symbolNode* symbol = findSymbol(root->left->value);
+        if((strcmp(symbol->type, "STRING_CTE") == 0 || strcmp(symbol->type, "STRING") == 0)) {
+            fprintf(file,"\tdisplayString %s\n", root->left->value);
+        } else if ((strcmp(symbol->type, "INT") == 0)) {
+            fprintf(file,"\tdisplayInteger %s\n", root->left->value);
+        } else if ((strcmp(symbol->type, "FLOAT") == 0)) {
+            fprintf(file,"\tdisplayFloat %s\n", root->left->value);
+        }
+    } else if(strcmp(root->value,"READ") == 0) {
+        fprintf(file,"\tgetString %s\n", root->left->value);
     }
     if(root->right != NULL && root->left  != NULL) {
         printf("\tLEFT=[%s]\t[%s]\tRIGHT[%s]\n", root->left->value, root->value, root->right->value);
@@ -435,10 +446,15 @@ void generateCodeAsignation(ast * root) {
 }
 
 void generateCodeAsignationSimple(ast * root) {
-    fprintf(file, "\t; Simple Asignation\n");
-    fprintf(file, "\tFLD %s\n", root->right->value);
-    fprintf(file, "\tFSTP %s\n", root->left->value); 
-    strcpy(auxString,"*010101*"); // Código para que no printee FSTP
+    symbolNode* symbol = findSymbol(root->left->value);
+    if((strcmp(symbol->type, "STRING") == 0)) {
+        fprintf(file, "\tstrcpy %s, %s\n", root->left->value, root->right->value);
+    } else {
+        fprintf(file, "\t; Simple Asignation\n");
+        fprintf(file, "\tFLD %s\n", root->right->value);
+        fprintf(file, "\tFSTP %s\n", root->left->value); 
+        strcpy(auxString,"*010101*"); // Código para que no printee FSTP
+    }
 }
 
 void freeStack() {
