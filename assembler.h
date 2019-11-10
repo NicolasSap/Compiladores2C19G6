@@ -15,6 +15,11 @@ struct stackOperators {
     char array[5000][300]; 
 }; 
 
+struct stackUntilCondition { 
+    int top; 
+    char array[30][600]; 
+}; 
+
 void printTsInAsm();
 void swapTopStack();
 void generateAssembler();
@@ -22,8 +27,6 @@ void generateCondition();
 void generateCode();
 void initiateCode();
 int verifyIsCondition();
-void generateAndCondition();
-void generateOrCondition();
 void goThroughTree();
 void printLabel();
 void printJump();
@@ -32,6 +35,8 @@ int pop();
 void push();
 char* popOperator();
 void pushOperator();
+char* popUntil();
+void pushUntil();
 void generateCodeOperation();
 void generateCodeAsignation();
 void generateCodeAsignationSimple();
@@ -40,11 +45,18 @@ char * insertFirtsChar();
 void generateSumCode();
 void freeStack();
 
-struct stackStatements* stackIf;
+struct stackStatements* stack;
+struct stackStatements* repeatStack;
 struct stackOperators* stackOperator;
+struct stackUntilCondition* stackUntil;
 char auxString[200];
+char auxCondition[300];
 int auxCount = 0;
+int repeatCount = 0;
 int wasOr = 0;
+int wasAnd = 0;
+int isUntil = 0;
+int countIf = 0; // si es 0 printea como until, si es mayor printea como if
 
 void generateAssembler(ast* tree) {
     ast* copy = tree;
@@ -53,9 +65,21 @@ void generateAssembler(ast* tree) {
         printf("Error opening file!\n");
         exit(1);
     }
-    stackIf = (struct stackStatements*) malloc(sizeof(struct stackStatements)); 
-    stackIf->array = (int*) malloc(5000* sizeof(int));
+    
+    stack = (struct stackStatements*) malloc(sizeof(struct stackStatements)); 
+    stack->array = (int*) malloc(5000* sizeof(int));
+    stack->top = 0;
+
+    repeatStack = (struct stackStatements*) malloc(sizeof(struct stackStatements)); 
+    repeatStack->array = (int*) malloc(5000* sizeof(int));
+    repeatStack->top = 0;
+
     stackOperator = (struct stackOperators*) malloc(sizeof(struct stackOperators));
+    stackOperator->top = 0;
+
+    stackUntil = (struct stackUntilCondition*) malloc(sizeof(struct stackUntilCondition));
+    stackUntil->top = 0;
+
     initiateCode();
     goThroughTree(copy);
     // free all st(?)
@@ -81,6 +105,7 @@ void initiateCode() {
     fprintf(file, "\t_DIV\tdd\t?\n");
 
     fprintf(file, "\n\n.CODE\n");
+    fprintf(file, "\tbegin: .startup\n\n");
 }
 
 void printTsInAsm() {
@@ -102,29 +127,108 @@ void printTsInAsm() {
 }
 
 void goThroughTree(ast *root) {
+    char auxCond3[100]; // condicion a concatenar si es until con and u or
+    char value [4]; // operando a popear si es until con and u or
+    if (strcmp(root->value,"IF") == 0) {
+        countIf++;
+    } else if (strcmp(root->value,"UNTIL") == 0) {
+        isUntil = 1;
+        fprintf(file, "\nREPEAT_%d:\n", repeatCount);
+        push(repeatStack, repeatCount);
+        repeatCount++;
+    } else if (strcmp(root->value,"AND") == 0) {
+        //auxCount++;
+        push(stack, auxCount);
+    }
     if ( root->left != NULL ) {
         goThroughTree (root->left);
     }
     if (strcmp(root->value,"NOT") == 0) {
-        printOrJump(popOperator()); // SE HACE EL CONTRARIO PORQUE ES UN NOT
+        if (isUntil == 1) {
+            strcpy(value, popOperator());
+            if (strcmp(value,">=") == 0) {    
+                sprintf(auxCond3,"\tJL REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,">") == 0) {      
+                sprintf(auxCond3,"\tJLE REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"<=") == 0) {      
+                sprintf(auxCond3,"\tJG REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"<") == 0) {      
+                sprintf(auxCond3,"\tJGE REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"!=") == 0) {      
+                sprintf(auxCond3,"\tJE REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"==") == 0) {      
+                sprintf(auxCond3,"\tJNE REPEAT_%d\n", pop(repeatStack));
+            }
+            strcat(auxCondition,auxCond3);// concatenar el printOrJump a la variable auxCondition
+        } else {
+            printOrJump("IF", popOperator()); // SE HACE EL CONTRARIO PORQUE ES UN NOT
+        }
     } else if (strcmp(root->value,"OR") == 0) {
-        printOrJump(popOperator());
-        wasOr = 1;
-        auxCount++;
+        wasOr = 1;      // esto creo que va afuera del if
+        if ( isUntil == 0 ){
+            printOrJump("IF", popOperator());
+            
+            auxCount++;     // esto creo que va afuera del if
+        } else {
+            strcpy(value, popOperator());
+            int index = repeatStack->array[repeatStack->top];
+            push(repeatStack,index);
+            if (strcmp(value,">=") == 0) {    
+                sprintf(auxCond3,"\tJGE REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,">") == 0) {      
+                sprintf(auxCond3,"\tJG REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"<=") == 0) {      
+                sprintf(auxCond3,"\tJLE REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"<") == 0) {      
+                sprintf(auxCond3,"\tJL REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"!=") == 0) {      
+                sprintf(auxCond3,"\tJNE REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"==") == 0) {      
+                sprintf(auxCond3,"\tJE REPEAT_%d\n", pop(repeatStack));
+            }
+            strcat(auxCondition,auxCond3); // concatenar el printOrJump a la variable auxCondition
+        }
     } else if (strcmp(root->value,"AND") == 0) {
-        printJump(popOperator());
+        wasAnd = 1;
+        if ( isUntil == 0 ){
+            printJump("IF", popOperator());
+            //auxCount++;
+        } else {
+            strcpy(value, popOperator());
+
+
+            // este repeat count podria estar despues del strcat?
+            //repeatCount++;
+
+
+            push(repeatStack, repeatCount);
+            if (strcmp(value,">=") == 0) {    
+                sprintf(auxCond3,"\tJL REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,">") == 0) {      
+                sprintf(auxCond3,"\tJLE REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"<=") == 0) {      
+                sprintf(auxCond3,"\tJG REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"<") == 0) {      
+                sprintf(auxCond3,"\tJGE REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"!=") == 0) {      
+                sprintf(auxCond3,"\tJE REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,"==") == 0) {      
+                sprintf(auxCond3,"\tJNE REPEAT_%d\n", pop(repeatStack));
+            }
+            strcat(auxCondition,auxCond3);// concatenar el printOrJump a la variable auxCondition
+        }
     } else if (strcmp(root->value,"IF") == 0) {
-        printJump(popOperator());
+        printJump("IF", popOperator());
         if (wasOr == 1) {
-            swapTopStack(stackIf);
-            printLabel("IF");
+            swapTopStack(stack);
+            printLabel("IF", stack);
             wasOr = 0;
         }
         auxCount ++;
     } else if (strcmp(root->value,"CUERPO_IF") == 0) {
         fprintf(file,"\tJI IF_%d\n", auxCount);
-        printLabel("IF");
-        push(stackIf, auxCount);
+        printLabel("IF", stack);
+        push(stack, auxCount);
     }
     if( root->right != NULL ) {
         goThroughTree (root->right);
@@ -134,18 +238,25 @@ void goThroughTree(ast *root) {
 
 void generateCode(ast* root) {
     // no va a funcar si usamos para alguno que tenga un solo hijo ocn null
+    if (strcmp(root->value,"UNTIL") == 0) {
+        pushUntil(auxCondition);
+    }
     if(root->right != NULL && root->left  != NULL) {
         printf("\tLEFT=[%s]\t[%s]\tRIGHT[%s]\n", root->left->value, root->value, root->right->value);
         char operation[200];
         if (verifyIsCondition(root->value)) {
-
-
             generateCondition(root);
-
-
-
+        } else if (strcmp(root->value,"REPEAT") == 0) {
+            strcpy(auxCondition, popUntil());
+            fprintf(file, "%s", auxCondition);
+            strcpy(auxCondition, "");
+            printOrJump("REPEAT", popOperator());
+            if (wasAnd == 1) {
+                printLabel("REPEAT", repeatStack);
+                wasAnd == 0;
+            }
         } else if (strcmp(root->value,"IF") == 0) {
-            printLabel(root->value);
+            printLabel("IF", stack);
         } else if (strcmp(root->value,"+") == 0) {
             strcpy(operation, "ADD");
             generateCodeOperation(root, &operation);
@@ -173,12 +284,12 @@ void swapTopStack (struct stackStatements* s) {
     int poppedCount1;
     poppedCount1 = pop(s);
     poppedCount = pop(s);
-    push(stackIf, poppedCount1);
-    push(stackIf, poppedCount);
+    push(s, poppedCount1);
+    push(s, poppedCount);
 }
 
-void printLabel(char * operation){
-    fprintf(file, "\n%s_%d:\n", operation, pop(stackIf));
+void printLabel(char * operation, struct stackStatements* s) {
+    fprintf(file, "\n%s_%d:\n", operation, pop(s));
 }
 
 int pop(struct stackStatements* stack) { 
@@ -197,57 +308,83 @@ void pushOperator(char* item) {
     strcpy(stackOperator->array[++stackOperator->top],item); 
 } 
 
-void generateCondition(ast * root) {
-    fprintf(file, "\t; Condition\n");
-    fprintf(file,"\tFLD %s\n", root->left->value);
-    fprintf(file,"\tFCOMP %s\n", root->right->value);
-    fprintf(file,"\tFSTSW AX\n");
-    fprintf(file,"\tSAHF\n");
+char* popUntil() { 
+    return stackUntil->array[stackUntil->top--]; 
+}
+
+void pushUntil(char* item) { 
+    strcpy(stackUntil->array[++stackUntil->top],item);
+} 
+
+void generateCondition(ast * root) {    
+    // puede no ser until, o que sea until y que tenga if dentro
+    if (isUntil == 0 || isUntil == 1 && countIf > 0) {
+        sprintf(auxCondition, "\t; Condition\n\tFLD %s\n\tFCOMP %s\n\tFSTSW AX\n\tSAHF\n", root->left->value, root->right->value);
+        fprintf(file, "%s", auxCondition);
+        strcpy(auxCondition, "");
+        countIf--;
+    } else if (wasOr == 1 || wasAnd == 1) { // UNTIL CON AND U OR
+        char auxCond2[100];
+        sprintf(auxCond2, "\t; Condition\n\tFLD %s\n\tFCOMP %s\n\tFSTSW AX\n\tSAHF\n", root->left->value, root->right->value);
+        strcat(auxCondition,auxCond2);
+        wasOr = 0;
+    } else if (wasOr == 0 || wasAnd == 0) { // UNTIL CON UNA CONDICION SOLA
+        sprintf(auxCondition, "\t; Condition\n\tFLD %s\n\tFCOMP %s\n\tFSTSW AX\n\tSAHF\n", root->left->value, root->right->value);
+    }
     pushOperator(root->value);
 }
 
-void printJump(char * value){
-    if (strcmp(value,">=") == 0) {    
-        fprintf(file,"\tJL IF_%d\n", auxCount);
-    }else if (strcmp(value,">") == 0) {      
-        fprintf(file,"\tJLE IF_%d\n", auxCount);
-    }else if (strcmp(value,"<=") == 0) {      
-        fprintf(file,"\tJG IF_%d\n", auxCount);
-    }else if (strcmp(value,"<") == 0) {      
-        fprintf(file,"\tJGE IF_%d\n", auxCount);
-    }else if (strcmp(value,"!=") == 0) {      
-        fprintf(file,"\tJE IF_%d\n", auxCount);
-    }else if (strcmp(value,"==") == 0) {      
-        fprintf(file,"\tJNE IF_%d\n", auxCount);
+void printJump(char * operation, char * value) {
+    int count;
+    if (strcmp(operation, "REPEAT") == 0) { // es repeat
+        count = repeatCount;
+        push(repeatStack, repeatCount);
+    } else {
+        count = auxCount;
+        push(stack, auxCount);
     }
-    push(stackIf, auxCount);
+    if (strcmp(value,">=") == 0) {   
+        fprintf(file,"\tJL %s_%d\n", operation, count);
+    }else if (strcmp(value,">") == 0) {      
+        fprintf(file,"\tJLE %s_%d\n", operation, count);
+    }else if (strcmp(value,"<=") == 0) {      
+        fprintf(file,"\tJG %s_%d\n", operation, count);
+    }else if (strcmp(value,"<") == 0) {      
+        fprintf(file,"\tJGE %s_%d\n", operation, count);
+    }else if (strcmp(value,"!=") == 0) {      
+        fprintf(file,"\tJE %s_%d\n", operation, count);
+    }else if (strcmp(value,"==") == 0) {      
+        fprintf(file,"\tJNE %s_%d\n", operation, count);
+    }
+    
     fprintf(file,"\n");
 }
 
-void printOrJump(char * value){
-    if (strcmp(value,">=") == 0) {    
-        fprintf(file,"\tJGE IF_%d\n", auxCount);
-    }else if (strcmp(value,">") == 0) {      
-        fprintf(file,"\tJG IF_%d\n", auxCount);
-    }else if (strcmp(value,"<=") == 0) {      
-        fprintf(file,"\tJLE IF_%d\n", auxCount);
-    }else if (strcmp(value,"<") == 0) {      
-        fprintf(file,"\tJL IF_%d\n", auxCount);
-    }else if (strcmp(value,"!=") == 0) {      
-        fprintf(file,"\tJNE IF_%d\n", auxCount);
-    }else if (strcmp(value,"==") == 0) {      
-        fprintf(file,"\tJE IF_%d\n", auxCount);
+void printOrJump(char * operation, char * value, int isUntil){
+    int count;
+    if (strcmp(operation, "REPEAT") == 0) { // es repeat
+        count = pop(repeatStack);
+        if (wasAnd == 1) {
+            push(repeatStack, repeatCount);
+        }
+    } else {
+        count = auxCount;
+        push(stack, auxCount);
     }
-    push(stackIf, auxCount);
+    if (strcmp(value,">=") == 0) {    
+        fprintf(file,"\tJGE %s_%d\n", operation, count);
+    }else if (strcmp(value,">") == 0) {      
+        fprintf(file,"\tJG %s_%d\n", operation, count);
+    }else if (strcmp(value,"<=") == 0) {      
+        fprintf(file,"\tJLE %s_%d\n", operation, count);
+    }else if (strcmp(value,"<") == 0) {      
+        fprintf(file,"\tJL %s_%d\n", operation, count);
+    }else if (strcmp(value,"!=") == 0) {      
+        fprintf(file,"\tJNE %s_%d\n", operation, count);
+    }else if (strcmp(value,"==") == 0) {      
+        fprintf(file,"\tJE %s_%d\n", operation, count);
+    }
     fprintf(file,"\n");
-}
-
-void generateAndCondition(ast * root) {
-
-}
-
-void generateOrCondition(ast * root) {
-
 }
 
 int verifyIsCondition(char* value) {
@@ -314,7 +451,7 @@ void freeStack() {
     fprintf(file, "\tFFREE st(5)\n");
     fprintf(file, "\tFFREE st(6)\n");
     fprintf(file, "\tFFREE st(7)\n\n");
-    fprintf(file, "\tEND START");
+    fprintf(file, "\tEND begin");
 }
 /*
 char * removeFirstCharConstant(char * constant) {
