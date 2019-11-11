@@ -109,6 +109,11 @@ void initiateCode() {
     fprintf(file, "\t_DIV\tdd\t?\n");
 
     fprintf(file, "\n\n.CODE\n");
+    fprintf(file, "STRLEN PROC\n\tmov bx,0\nSTRL01:\n\tcmp BYTE PTR [SI+BX],'$'\n\tje STREND\n\tinc BX\n");
+    fprintf(file, "\tcmp BX, MAXTEXTSIZE\n\tjl STRL01\nSTREND:\n\tret\nSTRLEN ENDP\n\nCOPY PROC\n");
+    fprintf(file, "\tcall STRLEN\n\tcmp bx,MAXTEXTSIZE\n\tjle COPYSIZEOK\n\tmov bx,MAXTEXTSIZE\nCOPYSIZEOK:\n\tmov cx,bx\n");
+    fprintf(file, "\tcld\n\trep movsb\n\tmov al,'$'\n\tmov BYTE PTR [DI],al\n\tret\nCOPY ENDP\n\n");
+
     fprintf(file, "\tbegin: .startup\n\n");
 }
 
@@ -123,10 +128,17 @@ void printTsInAsm() {
     while(current != NULL){
         if (strcmp(current->type, "STRING") == 0) {
            fprintf(file, "\t%s\tdb\tMAXTEXTSIZE dup (?),'$'\n", current->name);
-        } else if (strcmp(current->type, "STRING_CTE") == 0) {
+        } else if (strcmp(current->type, "STRING_CTE") == 0 || strcmp(current->type, "CONST_STRING") == 0) {
             fprintf(file, "\t%s\tdb\t'%s','$', %d dup (?)\n", current->name, current->value, current->length);
         } else if (strcmp(current->type, "INTEGER_CTE") == 0) {
             fprintf(file, "\t%s\tdd\t%s.0\n", current->name, current->value);
+        } else if (strcmp(current->type, "FLOAT_CTE") == 0) {
+            char * aux = current->name;
+            while(*aux != '.'){
+                aux ++;
+            }
+            *aux = '_';
+            fprintf(file, "\t%s\tdd\t%s\n", current->name, current->value);            
         } else if(strcmp(current->value,"-") == 0) {
             fprintf(file, "\t%s\tdd\t?\n", current->name);
         } else {
@@ -157,13 +169,13 @@ void goThroughTree(ast *root) {
         if (isUntil == 1) {
             strcpy(value, popOperator());
             if (strcmp(value,">=") == 0) {    
-                sprintf(auxCond3,"\tJL REPEAT_%d\n", pop(repeatStack));
-            }else if (strcmp(value,">") == 0) {      
-                sprintf(auxCond3,"\tJLE REPEAT_%d\n", pop(repeatStack));
+                sprintf(auxCond3,"\tJB REPEAT_%d\n", pop(repeatStack));
+            }else if (strcmp(value,">") == 0) {         
+                sprintf(auxCond3,"\tJBE REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"<=") == 0) {      
-                sprintf(auxCond3,"\tJG REPEAT_%d\n", pop(repeatStack));
+                sprintf(auxCond3,"\tJA REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"<") == 0) {      
-                sprintf(auxCond3,"\tJGE REPEAT_%d\n", pop(repeatStack));
+                sprintf(auxCond3,"\tJAE REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"!=") == 0) {      
                 sprintf(auxCond3,"\tJE REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"==") == 0) {      
@@ -184,13 +196,13 @@ void goThroughTree(ast *root) {
             int index = repeatStack->array[repeatStack->top];
             push(repeatStack,index);
             if (strcmp(value,">=") == 0) {    
-                sprintf(auxCond3,"\tJGE REPEAT_%d\n", pop(repeatStack));
+                sprintf(auxCond3,"\tJAE REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,">") == 0) {      
-                sprintf(auxCond3,"\tJG REPEAT_%d\n", pop(repeatStack));
+                sprintf(auxCond3,"\tJA REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"<=") == 0) {      
-                sprintf(auxCond3,"\tJLE REPEAT_%d\n", pop(repeatStack));
+                sprintf(auxCond3,"\tJBE REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"<") == 0) {      
-                sprintf(auxCond3,"\tJL REPEAT_%d\n", pop(repeatStack));
+                sprintf(auxCond3,"\tJB REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"!=") == 0) {      
                 sprintf(auxCond3,"\tJNE REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"==") == 0) {      
@@ -213,13 +225,13 @@ void goThroughTree(ast *root) {
 
             push(repeatStack, repeatCount);
             if (strcmp(value,">=") == 0) {    
-                sprintf(auxCond3,"\tJL REPEAT_%d\n", pop(repeatStack));
+                sprintf(auxCond3,"\tJB REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,">") == 0) {      
-                sprintf(auxCond3,"\tJLE REPEAT_%d\n", pop(repeatStack));
+                sprintf(auxCond3,"\tJBE REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"<=") == 0) {      
-                sprintf(auxCond3,"\tJG REPEAT_%d\n", pop(repeatStack));
+                sprintf(auxCond3,"\tJA REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"<") == 0) {      
-                sprintf(auxCond3,"\tJGE REPEAT_%d\n", pop(repeatStack));
+                sprintf(auxCond3,"\tJAE REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"!=") == 0) {      
                 sprintf(auxCond3,"\tJE REPEAT_%d\n", pop(repeatStack));
             }else if (strcmp(value,"==") == 0) {      
@@ -236,7 +248,7 @@ void goThroughTree(ast *root) {
         }
         auxCount ++;
     } else if (strcmp(root->value,"CUERPO_IF") == 0) {
-        fprintf(file,"\tJI IF_%d\n", auxCount);
+        fprintf(file,"\tJMP IF_%d\n", auxCount);
         printLabel("IF", stack);
         push(stack, auxCount);
     }
@@ -337,6 +349,20 @@ void pushUntil(char* item) {
 } 
 
 void generateCondition(ast * root) {    
+    if(strchr(root->left->value, '.') != NULL){
+        char * aux = root->left->value;
+        while(*aux != '.'){
+            aux ++;
+        }
+        *aux = '_';
+    }
+    if(strchr(root->right->value, '.') != NULL){
+        char * aux = root->right->value;
+        while(*aux != '.'){
+            aux ++;
+        }
+        *aux = '_';
+    }
     // puede no ser until, o que sea until y que tenga if dentro
     if (isUntil == 0 || isUntil == 1 && countIf > 0) {
         sprintf(auxCondition, "\t; Condition\n\tFLD %s\n\tFCOMP %s\n\tFSTSW AX\n\tSAHF\n", root->left->value, root->right->value);
@@ -364,13 +390,13 @@ void printJump(char * operation, char * value) {
         push(stack, auxCount);
     }
     if (strcmp(value,">=") == 0) {   
-        fprintf(file,"\tJL %s_%d\n", operation, count);
+        fprintf(file,"\tJB %s_%d\n", operation, count);
     }else if (strcmp(value,">") == 0) {      
-        fprintf(file,"\tJLE %s_%d\n", operation, count);
+        fprintf(file,"\tJBE %s_%d\n", operation, count);
     }else if (strcmp(value,"<=") == 0) {      
-        fprintf(file,"\tJG %s_%d\n", operation, count);
+        fprintf(file,"\tJA %s_%d\n", operation, count);
     }else if (strcmp(value,"<") == 0) {      
-        fprintf(file,"\tJGE %s_%d\n", operation, count);
+        fprintf(file,"\tJAE %s_%d\n", operation, count);
     }else if (strcmp(value,"!=") == 0) {      
         fprintf(file,"\tJE %s_%d\n", operation, count);
     }else if (strcmp(value,"==") == 0) {      
@@ -380,7 +406,7 @@ void printJump(char * operation, char * value) {
     fprintf(file,"\n");
 }
 
-void printOrJump(char * operation, char * value, int isUntil){
+void printOrJump(char * operation, char * value){
     int count;
     if (strcmp(operation, "REPEAT") == 0) { // es repeat
         count = pop(repeatStack);
@@ -392,13 +418,13 @@ void printOrJump(char * operation, char * value, int isUntil){
         push(stack, auxCount);
     }
     if (strcmp(value,">=") == 0) {    
-        fprintf(file,"\tJGE %s_%d\n", operation, count);
+        fprintf(file,"\tJAE %s_%d\n", operation, count);
     }else if (strcmp(value,">") == 0) {      
-        fprintf(file,"\tJG %s_%d\n", operation, count);
+        fprintf(file,"\tJA %s_%d\n", operation, count);
     }else if (strcmp(value,"<=") == 0) {      
-        fprintf(file,"\tJLE %s_%d\n", operation, count);
+        fprintf(file,"\tJBE %s_%d\n", operation, count);
     }else if (strcmp(value,"<") == 0) {      
-        fprintf(file,"\tJL %s_%d\n", operation, count);
+        fprintf(file,"\tJB %s_%d\n", operation, count);
     }else if (strcmp(value,"!=") == 0) {      
         fprintf(file,"\tJNE %s_%d\n", operation, count);
     }else if (strcmp(value,"==") == 0) {      
@@ -421,6 +447,21 @@ int verifyIsCondition(char* value) {
 }
 
 void generateCodeOperation(ast * root, char * operation) {
+
+    if(strchr(root->left->value, '.') != NULL){
+        char * aux = root->left->value;
+        while(*aux != '.'){
+            aux ++;
+        }
+        *aux = '_';
+    }
+    if(strchr(root->right->value, '.') != NULL){
+        char * aux = root->right->value;
+        while(*aux != '.'){
+            aux ++;
+        }
+        *aux = '_';
+    }
 
     if(strcmp(auxString,"*010101*") != 0) {
         fprintf(file, "%s", auxString);
@@ -457,8 +498,22 @@ void generateCodeAsignation(ast * root) {
 void generateCodeAsignationSimple(ast * root) {
     symbolNode* symbol = findSymbol(root->left->value);
     if((strcmp(symbol->type, "STRING") == 0)) {
-        fprintf(file, "\tstrcpy %s, %s\n", root->left->value, root->right->value);
+        fprintf(file, "\tLEA SI, %s\n\tLEA DI,%s\n\tCALL COPY\n", root->right->value, root->left->value);
     } else {
+        if(strchr(root->left->value, '.') != NULL){
+            char * aux = root->left->value;
+            while(*aux != '.'){
+                aux ++;
+            }
+            *aux = '_';
+        }
+        if(strchr(root->right->value, '.') != NULL){
+            char * aux = root->right->value;
+            while(*aux != '.'){
+                aux ++;
+            }
+            *aux = '_';
+        }
         fprintf(file, "\t; Simple Asignation\n");
         fprintf(file, "\tFLD %s\n", root->right->value);
         fprintf(file, "\tFSTP %s\n", root->left->value); 

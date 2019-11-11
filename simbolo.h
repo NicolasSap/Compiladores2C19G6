@@ -261,7 +261,18 @@ void removeChar(char *s, int c){
     s[j] = '\0'; 
 }
 
+char * removeFirstCharConstant(char * constant) {
+    char * aux = (char *) malloc(strlen(constant)-1);
+    strcpy(aux, ++constant);
+    return aux;
+}
+
+
 symbolNode* findSymbol(char* value) {
+    if(value[0] == '"'){
+        value = removeFirstCharConstant(value);
+        value[strlen(value)-1] = '\0';
+    }
     symbolNode* tableNode = symbolTable;
     while(tableNode != NULL) {
         if ((tableNode->value != NULL && strcmp(value, tableNode->value) == 0) || (strcmp(value, tableNode->name) == 0)) {
