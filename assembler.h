@@ -264,14 +264,19 @@ void generateCode(ast* root) {
         pushUntil(auxCondition);
     } else if (strcmp(root->value,"PRINT") == 0) {
         symbolNode* symbol = findSymbol(root->left->value);
-        if((strcmp(symbol->type, "STRING_CTE") == 0 || strcmp(symbol->type, "STRING") == 0)) {
+        if((strcmp(symbol->type, "STRING_CTE") == 0 || strcmp(symbol->type, "STRING") == 0 || strcmp(symbol->type, "CONST_STRING") == 0)) {
             fprintf(file,"\tdisplayString %s\n", root->left->value);
         } else if ((strcmp(symbol->type, "INT") == 0) || (strcmp(symbol->type, "FLOAT") == 0)) {
             fprintf(file,"\tdisplayFloat %s,2\n", root->left->value);
         } 
         fprintf(file,"\tnewLine 1\n");
     } else if(strcmp(root->value,"READ") == 0) {
-        fprintf(file,"\tgetString %s\n", root->left->value);
+        symbolNode* symbol = findSymbol(root->left->value);
+        if((strcmp(symbol->type, "STRING_CTE") == 0 || strcmp(symbol->type, "STRING") == 0 || strcmp(symbol->type, "CONST_STRING") == 0)) {
+            fprintf(file,"\tgetString %s\n", root->left->value);
+        } else if ((strcmp(symbol->type, "INT") == 0) || (strcmp(symbol->type, "FLOAT") == 0)) {
+            fprintf(file,"\tGetFloat %s\n", root->left->value);
+        } 
     }
     if(root->right != NULL && root->left  != NULL) {
         printf("\tLEFT=[%s]\t[%s]\tRIGHT[%s]\n", root->left->value, root->value, root->right->value);

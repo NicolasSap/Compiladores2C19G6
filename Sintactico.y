@@ -257,7 +257,7 @@ void validateAsignation(char* id, ast* exp) {
             fprintf(stderr, "\n[E] Incompatible assignment, line: %d\n", yylineno);
             exit(1);
         }
-        if((strcmp(symbol->type, "STRING") == 0) && (strcmp(treeValue->type, "INTEGER_CTE") == 0 || strcmp(treeValue->type, "CTE_REAL") == 0  || strcmp(treeValue->type, "INTEGER_C") == 0 || strcmp(treeValue->type, "FLOAT_C") == 0 )) {
+        if((strcmp(symbol->type, "STRING") == 0) && (strcmp(treeValue->type, "INTEGER_CTE") == 0 || strcmp(treeValue->type, "CTE_REAL") == 0  || strcmp(treeValue->type, "INTEGER_C") == 0 || strcmp(treeValue->type, "FLOAT_C") == 0 || strcmp(treeValue->type, "INT") == 0 || strcmp(treeValue->type, "FLOAT") == 0 )) {
             fprintf(stderr, "\n[E] Incompatible assignment, line: %d\n", yylineno);
             exit(1);
         }

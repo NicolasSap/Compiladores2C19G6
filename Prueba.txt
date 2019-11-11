@@ -3,41 +3,66 @@ VAR
 	[INT, STRING]:[f,g]
 ENDVAR
 --/ COMENTARIO NIVEL 1 /--
+
 --/ COMENTARIO NIVEL 1 --/ COMENTARIO NIVEL 2 /-- /--
-a := (((8 + b) - c) / 3 * 5)
-d := "asd"
+
+b := 2 
+c := 2
+
+
+a := (((9 + b) - c) / 3 * 5)
 e := 31.33
 
-IF(a < b && e == 31.33) {
-	IF (b > c) {
-		REPEAT
-			a:=a+1
-			REPEAT
-				c:=c+1
-			UNTIL c == 0
-		UNTIL a == b
+CONST y := "PruebaY"
+PRINT y
+
+IF(b < a) {
+	PRINT "B_MENOR"
+	IF (b >= c) {
+		PRINT "B_MAYOR_IGUAL"
+		b := 13
 	}
 }
 
+REPEAT
+    PRINT b
+	b := 1 + b
+	REPEAT
+	    PRINT c
+		c:= c - 1
+	UNTIL c > 2
+UNTIL a >= b
+
 IF ( ! (a != b)) {
-	d := "pepe"
-} ELSE {
-	d := "papa"
+	PRINT "IF_NOT"
+	a := 20
 }
 
 IF ( a >= b || a <= c) {
-	d := "pepe1"
+	PRINT "IF_OR"
+	b := 100
+}
+
+IF ( a == b && a == c) {
+	PRINT "IF_AND"
+	b := 100
+}ELSE{
+	PRINT "IF_AND_ELSE"
+	b := 50
 }
 
 a := 65535
-d := "123456789012345678901234567890"
 e := 3.402823
 
-PRINT d
-PRINT "asd"
+PRINT "Ingrese_Numero"
 READ a
+PRINT a
 
-[a,d,c,e] := [1,"hola",a,1.33]
+[a,b,c,e] := [1,a,10,1.33]
+
 
 CONST z := 30
-CONST y := "asd"
+
+--/ DESCOMENTAR ESTAS LINEAS PARA VALIDAR ERRORES AL COMPILAR /--
+--/ a := d /--
+--/ d := a /--
