@@ -57,6 +57,7 @@ int repeatCount = 0;
 int wasOr = 0;
 int wasAnd = 0;
 int isUntil = 0;
+int wasIfNot = 0;
 int countIf = 0; // si es 0 printea como until, si es mayor printea como if
 
 void generateAssembler(ast* tree) {
@@ -153,6 +154,9 @@ void goThroughTree(ast *root) {
     char value [4]; // operando a popear si es until con and u or
     if (strcmp(root->value,"IF") == 0) {
         countIf++;
+        if (strcmp(root->left->value,"NOT") == 0) {
+            wasIfNot = 1;
+        }
     } else if (strcmp(root->value,"UNTIL") == 0) {
         isUntil = 1;
         fprintf(file, "\nREPEAT_%d:\n", repeatCount);
@@ -165,7 +169,7 @@ void goThroughTree(ast *root) {
         goThroughTree (root->left);
     }
     if (strcmp(root->value,"NOT") == 0) {
-        if (isUntil == 1) {
+        if (isUntil == 1 && wasIfNot == 0) {
             strcpy(value, popOperator());
             if (strcmp(value,">=") == 0) {    
                 sprintf(auxCond3,"\tJB REPEAT_%d\n", pop(repeatStack));
@@ -183,6 +187,7 @@ void goThroughTree(ast *root) {
             strcat(auxCondition,auxCond3);// concatenar el printOrJump a la variable auxCondition
         } else {
             printOrJump("IF", popOperator()); // SE HACE EL CONTRARIO PORQUE ES UN NOT
+            wasIfNot = 0;
         }
     } else if (strcmp(root->value,"OR") == 0) {
         wasOr = 1;
