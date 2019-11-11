@@ -159,7 +159,6 @@ void goThroughTree(ast *root) {
         push(repeatStack, repeatCount);
         repeatCount++;
     } else if (strcmp(root->value,"AND") == 0) {
-        //auxCount++;
         push(stack, auxCount);
     }
     if ( root->left != NULL ) {
@@ -186,11 +185,10 @@ void goThroughTree(ast *root) {
             printOrJump("IF", popOperator()); // SE HACE EL CONTRARIO PORQUE ES UN NOT
         }
     } else if (strcmp(root->value,"OR") == 0) {
-        wasOr = 1;      // esto creo que va afuera del if
+        wasOr = 1;
         if ( isUntil == 0 ){
             printOrJump("IF", popOperator());
-            
-            auxCount++;     // esto creo que va afuera del if
+            auxCount++;
         } else {
             strcpy(value, popOperator());
             int index = repeatStack->array[repeatStack->top];
@@ -214,15 +212,8 @@ void goThroughTree(ast *root) {
         wasAnd = 1;
         if ( isUntil == 0 ){
             printJump("IF", popOperator());
-            //auxCount++;
         } else {
             strcpy(value, popOperator());
-
-
-            // este repeat count podria estar despues del strcat?
-            //repeatCount++;
-
-
             push(repeatStack, repeatCount);
             if (strcmp(value,">=") == 0) {    
                 sprintf(auxCond3,"\tJB REPEAT_%d\n", pop(repeatStack));
@@ -279,7 +270,6 @@ void generateCode(ast* root) {
         } 
     }
     if(root->right != NULL && root->left  != NULL) {
-        printf("\tLEFT=[%s]\t[%s]\tRIGHT[%s]\n", root->left->value, root->value, root->right->value);
         char operation[200];
         if (verifyIsCondition(root->value)) {
             generateCondition(root);
@@ -537,16 +527,3 @@ void freeStack() {
     fprintf(file, "\tFFREE st(6)\n");
     fprintf(file, "\tFFREE st(7)\n\n");
 }
-/*
-char * removeFirstCharConstant(char * constant) {
-    char * aux = (char *) malloc(strlen(constant)-1);
-    strcpy(aux, ++constant);
-    return aux;
-}
-
-char * insertFirtsChar(char * constant) {
-    char * aux = (char *) malloc(strlen(constant)+1);
-    aux[0] = '_';
-    strcat(aux,constant);
-    return aux;
-}*/

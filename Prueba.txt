@@ -64,5 +64,19 @@ PRINT a
 CONST z := 30
 
 --/ DESCOMENTAR ESTAS LINEAS PARA VALIDAR ERRORES AL COMPILAR /--
+
+--/ ID CON ID /--
 --/ a := d /--
+--/ a := e /--
 --/ d := a /--
+--/ d := e /--
+--/ e := a /--
+--/ e := d /--
+
+--/ ID CON CTE /--
+--/ a := 2.5 /--
+--/ a := "asd" /--
+--/ e := 2 /--
+--/ e := "asd" /--
+--/ d := 2 /--
+--/ d := 2.5 /--

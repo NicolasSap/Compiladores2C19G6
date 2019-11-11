@@ -257,7 +257,12 @@ void validateAsignation(char* id, ast* exp) {
             fprintf(stderr, "\n[E] Incompatible assignment, line: %d\n", yylineno);
             exit(1);
         }
-        if((strcmp(symbol->type, "STRING") == 0) && (strcmp(treeValue->type, "INTEGER_CTE") == 0 || strcmp(treeValue->type, "CTE_REAL") == 0  || strcmp(treeValue->type, "INTEGER_C") == 0 || strcmp(treeValue->type, "FLOAT_C") == 0 || strcmp(treeValue->type, "INT") == 0 || strcmp(treeValue->type, "FLOAT") == 0 )) {
+        if((strcmp(symbol->type, "STRING") == 0) && (strcmp(treeValue->type, "INTEGER_CTE") == 0 || strcmp(treeValue->type, "CTE_REAL") == 0  || strcmp(treeValue->type, "CTE_ENT") == 0 || strcmp(treeValue->type, "FLOAT_CTE") == 0 || strcmp(treeValue->type, "INT") == 0 || strcmp(treeValue->type, "FLOAT") == 0 )) {
+            fprintf(stderr, "\n[E] Incompatible assignment, line: %d\n", yylineno);
+            exit(1);
+        }
+        if((strcmp(symbol->type, "INT") == 0 && (strcmp(treeValue->type, "FLOAT") == 0 || strcmp(treeValue->type, "FLOAT_CTE") == 0 || strcmp(treeValue->type, "CTE_REAL") == 0)) 
+        || strcmp(symbol->type, "FLOAT") == 0 && (strcmp(treeValue->type, "INT") == 0 || strcmp(treeValue->type, "INTEGER_CTE") == 0 || strcmp(treeValue->type, "CTE_ENT") == 0)) {
             fprintf(stderr, "\n[E] Incompatible assignment, line: %d\n", yylineno);
             exit(1);
         }
@@ -303,27 +308,3 @@ char* changeType(char* t) {
     }
     return value;
 }
-/*
-expresion OP_SUMA termino    {validateType($1, $3, 1); printf("\nRegla 47 : E + T\n");}
-
-
-void validateType(ast* left, ast* right, int fail) {
-    printf("Entre a verficar los Tipos en una expresion\n\n");
-    if(right->value != NULL) {
-        printf("A\n\n");
-        symbolNode* symbolLeft = findSymbol(left->value);
-        printf("B\n\n");
-        symbolNode* symbolRight = findSymbol(right->value);
-        if(symbolRight != NULL && symbolLeft != NULL) {
-        if(fail == 1 && (
-            strcmp(symbolLeft->type, "STRING") == 0 ||
-            strcmp(symbolLeft->type, "STRING_C") == 0 ||
-            strcmp(symbolRight->type, "STRING") == 0 ||
-            strcmp(symbolRight->type, "STRING_C") == 0)) {
-            fprintf(stderr, "\n Incompatible operation, line: %d\n", yylineno);
-            exit(1);
-        }
-        }
-    }
-}
-*/
