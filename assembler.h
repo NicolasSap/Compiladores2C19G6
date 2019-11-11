@@ -109,11 +109,12 @@ void initiateCode() {
     fprintf(file, "\t_DIV\tdd\t?\n");
 
     fprintf(file, "\n\n.CODE\n");
+    /*
     fprintf(file, "STRLEN PROC\n\tmov bx,0\nSTRL01:\n\tcmp BYTE PTR [SI+BX],'$'\n\tje STREND\n\tinc BX\n");
     fprintf(file, "\tcmp BX, MAXTEXTSIZE\n\tjl STRL01\nSTREND:\n\tret\nSTRLEN ENDP\n\nCOPY PROC\n");
     fprintf(file, "\tcall STRLEN\n\tcmp bx,MAXTEXTSIZE\n\tjle COPYSIZEOK\n\tmov bx,MAXTEXTSIZE\nCOPYSIZEOK:\n\tmov cx,bx\n");
     fprintf(file, "\tcld\n\trep movsb\n\tmov al,'$'\n\tmov BYTE PTR [DI],al\n\tret\nCOPY ENDP\n\n");
-
+    */
     fprintf(file, "\tbegin: .startup\n\n");
 }
 
@@ -503,7 +504,9 @@ void generateCodeAsignation(ast * root) {
 void generateCodeAsignationSimple(ast * root) {
     symbolNode* symbol = findSymbol(root->left->value);
     if((strcmp(symbol->type, "STRING") == 0)) {
-        fprintf(file, "\tLEA SI, %s\n\tLEA DI,%s\n\tCALL COPY\n", root->right->value, root->left->value);
+        //fprintf(file, "\tLEA SI, %s\n\tLEA DI,%s\n\tCALL COPY\n", root->right->value, root->left->value);
+        fprintf(file, "\tLEA SI, %s\n\tLEA DI,%s\n", root->right->value, root->left->value);
+        fprintf(file,"cpy_nxt:mov bl, [si]\n\tmov [di], bl\n\tinc si\n\tinc di\n\tdec cx\n\tjnz cpy_nxt\n");
     } else {
         if(strchr(root->left->value, '.') != NULL){
             char * aux = root->left->value;
