@@ -6,9 +6,8 @@ ENDVAR
 
 --/ COMENTARIO NIVEL 1 --/ COMENTARIO NIVEL 2 /-- /--
 
-b := 2 
+b := 2
 c := 2
-
 
 a := (((9 + b) - c) / 3 * 5)
 e := 31.33

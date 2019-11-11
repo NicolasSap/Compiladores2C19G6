@@ -158,7 +158,7 @@ void goThroughTree(ast *root) {
             wasIfNot = 1;
         }
     } else if (strcmp(root->value,"UNTIL") == 0) {
-        isUntil = 1;
+        isUntil++; // count how many untils are
         fprintf(file, "\nREPEAT_%d:\n", repeatCount);
         push(repeatStack, repeatCount);
         repeatCount++;
@@ -169,7 +169,7 @@ void goThroughTree(ast *root) {
         goThroughTree (root->left);
     }
     if (strcmp(root->value,"NOT") == 0) {
-        if (isUntil == 1 && wasIfNot == 0) {
+        if (isUntil > 0 && wasIfNot == 0) {
             strcpy(value, popOperator());
             if (strcmp(value,">=") == 0) {    
                 sprintf(auxCond3,"\tJB REPEAT_%d\n", pop(repeatStack));
@@ -259,19 +259,21 @@ void generateCode(ast* root) {
     if (strcmp(root->value,"UNTIL") == 0) {
         pushUntil(auxCondition);
     } else if (strcmp(root->value,"PRINT") == 0) {
+        fprintf(file,"\t; PRINT\n");
         symbolNode* symbol = findSymbol(root->left->value);
         if((strcmp(symbol->type, "STRING_CTE") == 0 || strcmp(symbol->type, "STRING") == 0 || strcmp(symbol->type, "CONST_STRING") == 0)) {
             fprintf(file,"\tdisplayString %s\n", root->left->value);
         } else if ((strcmp(symbol->type, "INT") == 0) || (strcmp(symbol->type, "FLOAT") == 0)) {
             fprintf(file,"\tdisplayFloat %s,2\n", root->left->value);
         } 
-        fprintf(file,"\tnewLine 1\n");
+        fprintf(file,"\tnewLine 1\n\n");
     } else if(strcmp(root->value,"READ") == 0) {
+        fprintf(file,"\n\t; READ\n");
         symbolNode* symbol = findSymbol(root->left->value);
         if((strcmp(symbol->type, "STRING_CTE") == 0 || strcmp(symbol->type, "STRING") == 0 || strcmp(symbol->type, "CONST_STRING") == 0)) {
-            fprintf(file,"\tgetString %s\n", root->left->value);
+            fprintf(file,"\tgetString %s\n\n", root->left->value);
         } else if ((strcmp(symbol->type, "INT") == 0) || (strcmp(symbol->type, "FLOAT") == 0)) {
-            fprintf(file,"\tGetFloat %s\n", root->left->value);
+            fprintf(file,"\tGetFloat %s\n\n", root->left->value);
         } 
     }
     if(root->right != NULL && root->left  != NULL) {
@@ -287,6 +289,7 @@ void generateCode(ast* root) {
                 printLabel("REPEAT", repeatStack);
                 wasAnd == 0;
             }
+            isUntil--;
         } else if (strcmp(root->value,"IF") == 0) {
             printLabel("IF", stack);
         } else if (strcmp(root->value,"+") == 0) {
@@ -364,7 +367,7 @@ void generateCondition(ast * root) {
         *aux = '_';
     }
     // puede no ser until, o que sea until y que tenga if dentro
-    if (isUntil == 0 || isUntil == 1 && countIf > 0) {
+    if (isUntil == 0 || isUntil > 0 && countIf > 0) {
         sprintf(auxCondition, "\t; Condition\n\tFLD %s\n\tFCOMP %s\n\tFSTSW AX\n\tSAHF\n", root->left->value, root->right->value);
         fprintf(file, "%s", auxCondition);
         strcpy(auxCondition, "");
@@ -516,7 +519,7 @@ void generateCodeAsignationSimple(ast * root) {
         }
         fprintf(file, "\t; Simple Asignation\n");
         fprintf(file, "\tFLD %s\n", root->right->value);
-        fprintf(file, "\tFSTP %s\n", root->left->value); 
+        fprintf(file, "\tFSTP %s\n\n", root->left->value); 
         strcpy(auxString,"*010101*"); // Código para que no printee FSTP
     }
 }
